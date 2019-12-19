@@ -1,0 +1,4 @@
+# import your valory-bots here to load them as bots into the server
+# the order will be preserved (bots imported first will be used first)
+
+import "./data/valory/example.val"

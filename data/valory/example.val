@@ -1,0 +1,36 @@
+# Valory-Framework:
+# BOTS OR AGENTS MAKING USE OF ANY OF THE VALORY-FRAMEWORK COMPONENTS
+# ARE NOT ALLOWED AS SOLUTIONS FOR THE KI COURSE!
+
+# done with the course material (including extra tasks)?
+#    feel free to ask about the framework
+
+import "./data/valory/gotoSafety.val"
+
+# walks toward the closest enemy dot while staying as far away from enemys as possible
+task collect {
+	target: dot and not ownHalf
+	# every step costs the same (essentially measured in turns)
+	cost: const
+	# danger = -distance to enemy
+	# -> bigger distance to enemys is preferable (smaller)
+	distance: (depth + 1) * danger
+}
+
+# specifies a number of collected dots that are worth going home for to lock in
+task bringHome {
+	gotoSafety if carrying >= 3
+}
+
+# the default bot is loaded when no id is specified at creation
+# note: bot names must be globally unique
+bot default {
+    # from the below list of tasks the one with highest priority is chosen
+    # note: lower numbers are higher priority
+    #       if a task can not be executed the next highest one is chosen
+	online join HIGH_PRIORITY {
+	    bringHome(1),    # highest priority but can only be executed if its condition is fulfilled
+		collect(2),
+		gotoSafety(3)    # necessary to return home after all dots are collected
+	}
+}

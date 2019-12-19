@@ -1,0 +1,7 @@
+# return to your own side to lock in collected dots and be safe from enemies
+task gotoSafety {
+	target: ownHalf
+	access: canwalk(true, false)
+	cost: const
+	distance: danger
+}

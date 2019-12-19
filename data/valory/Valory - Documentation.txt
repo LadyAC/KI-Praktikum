@@ -1,0 +1,157 @@
+### Welcome to the Valory-Bot-Framework ###
+
+### NOTE: BOTS OR AGENTS MAKING USE OF ANY OF THE VALORY-FRAMEWORK ###
+### COMPONENTS ARE NOT ALLOWED AS SOLUTIONS FOR THE KI COURSE!	   ###
+
+A simple way of defining bot behaviour in the VSPacman environment
+	(Questions or Suggestions? ask me (Florian))
+
+As it's configured the server will load bots from "./data/valory/default.val".
+	You can change which bot is loaded from there.
+
+The language is NOT case sensitive, that means all functions, names and keywords can be written in upper or lower case as
+    you feel appropriate (e.g. there is no difference between "BOT1" and "bot1").
+
+Tasks:
+    SimpleTask: At it's simplest a PacmanAgent can only do one thing: walk from where it is to another location.
+        The SimpleTask fulfills that purpose. It essentially runs a path finding algorithm to find a path to a
+        location with certain properties (target). A SimpleTask is completed when the agent reaches it's target.
+        Target: a description of the goal location
+        Access: a map of where the agent can step (optional, default: canWalk)
+        Cost:   a cost function which returns the step cost between two neighboring points (optional, default: 0)
+        Dist:   an approximation of distance to the target for a given location (optional, default: 0)
+
+    ConditionalTask: As the name implies this task will only execute if a condition is met
+    RepeatingTask: will restart once it is completed
+    OnlineTask: will restart on every turn (this causes the pathfinder to recalculate the path at every step)
+    CompositeTask: A collection of multiple tasks that decide on the next action together. How a decision is
+        reached depends on the aggregationMethod (described below).
+	
+Syntax highlighting:
+    IntelliJ:	1. File -> Import Settings -> highlighting.jar
+				2. Settings -> Editor -> Color Scheme -> User-Defined File Types:	Keyword2 -> Foreground A7EC21
+																					Keyword3 -> Foreground 52E3F6
+	Notepad++: 	1. Language -> Define your language... -> Import -> highlighting.xml
+				2. Restart Notepad++
+				3. Language -> Val
+				4. Settings -> Style Configurator... -> Select theme: Obsidian
+
+Syntax (easiest to understand while looking at the example.val file):
+	Square Brackets ("["): 	optional components
+	Curly Brackets ("{"): 	repeat multiple times (0 or more)
+	Single Quotes (" ' "): 	terminal symbols (content must be written into the file)
+	Vertical Line ("|"): 	alternative
+
+	VAL -> [import-list] [task-def-list] [bot-list]
+
+	import-list -> {import}
+	
+	import -> 'import' <path> {','<path>}
+	
+	bot-list -> bot-def {bot-def}
+	
+	bot-def -> 'bot' <name> '{' task-desc '}'
+
+	task-def-list -> task-def {',' task-def}
+
+	task-def -> 'task' <name> '{' task-desc '}'
+
+	task-desc -> <name> |			# has to be the name of a defined task
+				 simple-task [arguments] |
+				 '{' task-list '}' [arguments] |			# if the task list is already enclosed in curly brackets no additional set is needed
+				 ['online'] ['repeat'] ['join' <aggregateMethod>] task-desc [arguments] ['if' condition]
+
+	task-list -> task-desc {',' task-desc}
+
+	simple-task -> 'target:' condition ['access:' condition] ['cost:' number] ['distance:' number]
+
+    expression -> 'true' |
+                  'false' |
+                  <number> |
+                  <string> |
+                  <function> [arguments] |
+                  not expression |
+                  (expression) |
+                  |expression| |            # Math.abs()
+                  expression operation expression
+
+	# operators are evaluated from right to left (e.g. 10 * 8 + 2 => 10 * 10 => 100)
+	operation -> '<'  |
+                 '<=' |
+                 '='  |         # same as |
+                 '==' |         # <-------|
+                 '!=' |
+                 '>=' |
+                 '>'  |
+                 '+'  |
+                 '-'  |
+                 '*'  |
+                 '/'  |
+                 '^'  |         # Math.abs()
+                 '%'
+			  
+	arguments -> ['(' argument {, argument} ')']
+
+	argument -> [<name> ':'] expression
+		  
+<number>	is any string which can be interpreted as double by java.util.Double.parseDouble()
+<name>  	can be any string which does not contain special characters
+<string>    any character-sequence enclosed in double quotes
+<path>		any valid path in the file system enclosed in " (directories will be searched for .val files)
+<aggregateMethod> : any of six options with multiple possible spellings
+	- HIGHEST_PRIORITY: 'hp', 'highest_priority', 'high_priority', 'priority'
+	    the task with the highest priority gets to decide alone
+	- MAJORITY: 'majority'
+	    the action chosen by the majority will be chosen
+	- PLURALITY: 'plurality', 'most'
+	    similar to majority, but the majority must be at least 50%
+	- SHORTEST_COMPLETION: 'shortest_completion', 'length', 'time', 'sc'
+	    the task that is expected to be done first gets to decide alone
+	- ROUND_ROBIN: 'round_robin', 'cycle', 'rr'
+	    all tasks (that are not completed) take turns deciding
+	- RANDOM: 'random', 'r'
+	    a task is chosen at random
+	
+Functions receive information from two sources:
+	1. Arguments from the .val file written in round brackets.
+	2. Parameters from their environment, e.g. the 'target' environment of a simple task passes a specific location (loc: Point).
+additionally all functions can access the current world state (senses: Senses), as well as the priority (priority: number)
+    and timelimit (timelimit: number) of it's surrounding task
+	
+Predefined Functions:
+    Name            Arguments               Returns         Description
+	true			-                       boolean         is always true
+	false			-                       boolean         is always false
+	at              x: number, y: number    boolean         compares the Point specified by x and y arguments with the Point passed as parameter
+                    loc: Point                                  if x or y are not given the location is considered matching (e.g. x:2, loc:(2, 5) => true)
+	dot			    loc: Point              boolean         tests if the specified location contains a dot (optional arguments: x:int, y:int)
+	ownhalf	    	loc: Point              boolean         tests if the specified location is on the own half of the map (optional arguments: x:int, y:int)
+	opphalf	    	loc: Point              boolean         tests if the specified location is on the opponents half of the map (optional arguments: x:int, y:int)
+	team            -                       boolean         true for blue team, false for red team
+	enemy			loc: Point              boolean         tests if an enemy is at the specified location (optional arguments: x:int, y:int)
+	friend  		loc: Point              boolean         tests if a teammate is at the specified location (optional arguments: x:int, y:int)
+	free			loc: Point              boolean         tests if the specified location is empty (optional arguments: x:int, y:int)
+	wall			loc: Point              boolean         tests if the specified location is a wall(optional arguments: x:int, y:int)
+	canwalk         loc: Point              boolean         tests if the specified location can be traversed
+	                oppblock: boolean                           consider opponents as walls (default: false)
+	                teamblock: boolean                          consider teammates as walls (default: false)
+	inbounds        loc: Point              boolean         if the specified location is within the map bounds
+	safe            turns: number           boolean         tests if an enemy could reach the specified location in turns number of turns (optional arguments: x:int, y:int)
+
+	none			-                       number          always returns 0
+	zero            -                       number          always returns 0
+	const           c:number	            number          returns c (if no c is provided returns 1)
+	time            -                       number          returns the number of elapsed turns
+	timelimit       -                       number          maximum number of turns per game
+	dots            selector: string        number          number of dots remaining (arguments: "all"(default), "own", "opp")
+	danger			-                       number          value between 0 and 1 describing how close an enemy is to that location (points on own half always return 0)
+	disttoenemy		-                       number          distance to the nearest enemy
+	manhattan		a: Point, b: Point      number          manhattan distance between two locations from arguments or parameters
+	euklid			a: Point, b: Point      number          straight line distance between two locations from arguments or parameters
+	depth			loc: Point              number          how far the location specified in arguments or parameters is into enemy territory
+	carrying		-                       number          number of dots the bot is currently carrying
+	polynom			x: number, y: number    number          polynomial function specified by it's factors
+                    list of numbers of
+                    even length (anonymous)
+
+    pos             -                       Point           the current position

@@ -1,0 +1,44 @@
+# In this file you can write scripts to test your agents multiple times
+# in different levels against various bots.
+#
+# The results will be writen in the file automated_testing_results.txt.
+#
+# Supported Bots:
+# BSA	a simple attacker
+# BSD	a simple defender
+# BSH	a simple hunter
+# BST	a simple thief
+# BR	acts randomly
+# VAL	a bot from the Valory-Bot-Framework
+#
+# Syntax:
+# run{
+# name of level
+# bots (id x y) / agents (class x y name)
+# number of games
+# }
+#
+# Example:
+#
+run{
+	PVS_Easy_01
+	BSH 1 7
+	de.fh.stud.pacmanVS.MyPacmanVSAgent 14 7 MyAgent
+	2
+}
+run{
+	PVS_Easy_01
+	BSA 1 2
+	BSD 1 7
+	BSH 1 12
+	BSH 14 2
+	BSH 14 7
+	BST 14 12
+	3
+}
+
+
+
+
+
+
