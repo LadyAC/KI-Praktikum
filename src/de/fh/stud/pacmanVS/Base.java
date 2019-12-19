@@ -69,14 +69,13 @@ public class Base {
 				WorldBaseBig[i*2+1]=0;
 			}
 			//TODO Sven
-//			List<Vector2> ownSpwans = startInfo.getTeammateSpawns();
-//			List<Vector2> otherspawns = startInfo.getOpponentSpawn();
-//			int index = 0;
-//			for(int i = 0; i<ownSpwans.size();i++)
-//				System.out.println(WorldState.spawnPosition[index++]=Base.Vector2ToInt(ownSpwans.get(i)));
-//			System.out.println("Gegner____________________________________________________");
-//			for(int i = 0; i<otherspawns.size();i++)
-//				System.out.println(WorldState.spawnPosition[index++]=Base.Vector2ToInt(ownSpwans.get(i)));
+			List<Vector2> ownSpwans = startInfo.getTeammateSpawns();
+			List<Vector2> otherspawns = startInfo.getOpponentSpawn();
+			int index = 0;
+			for(int i = 0; i<ownSpwans.size();i++)
+				WorldState.spawnPosition[index++]=Base.Vector2ToInt(ownSpwans.get(i));
+			for(int i = 0; i<otherspawns.size();i++)
+				WorldState.spawnPosition[index++]=Base.Vector2ToInt(ownSpwans.get(i));
 			
 			//TODO Sven Ende
 			

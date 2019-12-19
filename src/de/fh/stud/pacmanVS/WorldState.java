@@ -42,10 +42,10 @@ public class WorldState {
 	int enemyTeamDotsSecured;
 	//public int bewertung;
 	
-	public int PacmanamZug() {
-		return spawnPosition[amZug];
-	}
-	
+//	public int PacmanamZug() {
+//		return spawnPosition[amZug];
+//	}
+//	
 	
 	// Konstruktor der aus einen VSPacmanPercept Objekt das uns der Server liefert ein WorldState Objekt erstellt
 	// funktioniert nur für das erste percept da wir nur im ersten Zug wissen welcher pacman welche Dots trägt
@@ -58,12 +58,12 @@ public class WorldState {
 		List<Vector2> vList=percept.getRemainingOwnDots();
 		for(int i=0;i<vList.size();i++){
 			v=vList.get(i);
-			world[Base.Vector2ToInt(v)*2] |= B13 ;
+			world[Base.Vector2ToInt(v)*2] |= B14 ;
 		}
 		vList=percept.getRemainingOpponentDots();
 		for(int i=0;i<vList.size();i++){
 			v=vList.get(i);
-			world[Base.Vector2ToInt(v)*2] |= B13 ;
+			world[Base.Vector2ToInt(v)*2] |= B14 ;
 		}
 		PacPos=new int[6];
 		v=percept.getPosition();
@@ -176,7 +176,8 @@ public class WorldState {
 						if(tmpCarry.length>0){
 							worldNew=world.clone();//dot informationen verändern sich im neuen Knoten -> kopie statt referenz nötig
 							for(int i=0;i<tmpCarry.length;i++)
-								worldNew[carriedDotsNew[currentPacman][i]]|=B14; // lege den dot wieder in die welt
+								worldNew[carriedDotsNew[pID][i]]|=B14;
+								//worldNew[carriedDotsNew[currentPacman][i]]|=B14; // lege den dot wieder in die welt evtl. ändern
 						}
 					}else{ //betretenes feld gehört anderem team
 						PacPosNew[currentPacman]=spawnPosition[currentPacman];
