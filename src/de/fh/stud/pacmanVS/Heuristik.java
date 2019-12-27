@@ -8,4 +8,5 @@ public class Heuristik {
 	public int carriedDots(int Pacman, int[][] tmp) {
 		return tmp[Pacman].length;
 	}
+	//Ich bin ein Kommentar
 }
