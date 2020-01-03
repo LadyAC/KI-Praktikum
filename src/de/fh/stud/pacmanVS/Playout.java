@@ -3,9 +3,10 @@ package de.fh.stud.pacmanVS;
 import java.util.concurrent.Phaser;
 
 public class Playout extends Thread{
+	public volatile boolean running=false;
 	public volatile double score;
 	int id;
-	MCTS tree;
+	volatile MCTS tree;
 	Phaser phaser;
 	private int phase=0;
 	public volatile WorldState toSimulate;
@@ -21,8 +22,10 @@ public class Playout extends Thread{
 	
 	public void run() {
 		while(true){
+			running=false;
 			phaser.awaitAdvance(phase);	// warte auf anweisung des MCTS threads weiterzuarbeiten
 			phase++;
+			running=true;
 //			try {Thread.currentThread().sleep(100);} catch (InterruptedException e) {} // delay für debugausgaben
 			
 			

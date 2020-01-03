@@ -148,7 +148,7 @@ public class MyPacmanVSAgent extends VSPacmanAgent {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
-						System.out.println("MCTS-thread hat wurzel (nach gegner aktion) noch nicht angepasst _"+SearchTree.phaser.getUnarrivedParties());
+						System.out.println("MCTS-thread hat wurzel (nach gegner aktion) noch nicht angepasst Arrived:"+SearchTree.phaser.getArrivedParties()+"/"+SearchTree.phaser.getRegisteredParties()+" Phase: "+SearchTree.phaser.getPhase());
 					}
 					System.out.print("Neue Wurzel im Suchbaum: ");
 					SearchTree.root.Weltzustand.print();
@@ -203,7 +203,7 @@ public class MyPacmanVSAgent extends VSPacmanAgent {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-					System.out.println("MCTS-thread hat wurzel (nach unserer aktion) noch nicht angepasst _"+SearchTree.phaser.getUnarrivedParties());
+					System.out.println("MCTS-thread hat wurzel (nach unserer aktion) noch nicht angepasst Arrived:"+SearchTree.phaser.getArrivedParties()+"/"+SearchTree.phaser.getRegisteredParties()+" Phase: "+SearchTree.phaser.getPhase());
 				}
 				System.out.print("Neue Wurzel im Suchbaum: ");
 				SearchTree.root.Weltzustand.print();

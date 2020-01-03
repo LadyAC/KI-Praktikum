@@ -237,7 +237,7 @@ public class WorldState {
 	
 	public int SimulateGame() {
 
-		
+		long sTime=System.nanoTime();
 		WorldState AktuellerKnoten=this;
 		int MaxSimTiefe=1200; //1200 entspricht 200 Ruden bei 6 pacman
 		int SimTiefe=0;
@@ -248,9 +248,9 @@ public class WorldState {
 		
 		
 		
-		if(this.round>400) {
+		if(round>400 || round==400 && amZug==5) {
 			System.err.println("Simulation gestarted für folgende runde: "+this.round+"_"+this.amZug);
-			this.print();
+			print();
 		}
 //		System.out.println("Simulationstart: "+round+"_"+amZug);
 		
@@ -264,13 +264,11 @@ public class WorldState {
 			kandidaten=AktuellerKnoten.expand_AllDirectionsAndWait();// schritt 1 expandiere aktuellen knoten
 			tmp=kandidaten.get(0);
 			
-			
-//			debugLog.append("\n"+tmp.round+"_"+tmp.amZug);
-//			if(System.nanoTime()-sTime > 1000000000 && !printed) { // DEBUGAUSGABE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-//				printed=true;
-//				System.out.println("Simulation dauert bereits ca. "+((System.nanoTime()-sTime)/1000000000)+" Sekunden");
-//				System.out.println("DebugLog: "+debugLog.toString());
-//			}
+		
+			if(System.nanoTime()-sTime > 500000000) {
+				System.err.println("Playout Simulation abgebrochen wegen zeitübersschreitung dauerte länger als 0,5 Sekunden");
+				return 0;
+			}
 			
 			
 			bestScore=tmp.getScore();

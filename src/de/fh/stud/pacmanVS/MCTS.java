@@ -1,6 +1,8 @@
 package de.fh.stud.pacmanVS;
 
 import java.util.concurrent.Phaser;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import de.fh.pacmanVS.enums.VSPacmanAction;
 
@@ -118,6 +120,8 @@ public class MCTS extends Thread {
 	
 	
 	private void SimulateGames(Node[] Selected) {
+		String debugString="";
+		
 		phaser = new Phaser(Selected.length);
 //		phaser.bulkRegister(Selected.length);		// telling the Phaser that how many Simulations/Threads need to finish their work before 
 		//System.out.println("MCTS thread:	Bitte "+Selected.length+" Threads mit eine Simulation zu starten");
@@ -145,6 +149,7 @@ public class MCTS extends Thread {
 			default:		
 				playTmp=null;
 			}
+			debugString+="  playout id="+playTmp.id+" phase="+playTmp.phaser.getPhase() ;
 			playTmp.toSimulate=Selected[i].Weltzustand;
 
 //			System.out.println("send to: Playout id="+playTmp.id+" activation-signal phase= "+playTmp.phaser.getPhase());
@@ -159,8 +164,21 @@ public class MCTS extends Thread {
 		//try {Thread.currentThread().sleep(50);} catch (InterruptedException e) {}
 //		System.out.println("MCTS phase (nach wartezeit)"+phaser.getPhase());
 		
-		
-		phaser.awaitAdvance(0);
+		//phaser.awaitAdvance(0);
+		try {
+			phaser.awaitAdvanceInterruptibly(0, 1, TimeUnit.SECONDS);
+		} catch (InterruptedException | TimeoutException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		if(phaser.getPhase()==0) {
+			System.err.println("MCTS left with timeout unarrived="+phaser.getUnarrivedParties()+" \n"+debugString+"\n");
+			System.err.println(playWait.id+" phase: "+playWait.phaser.getPhase()+" "+playWait.running);
+			System.err.println(playGoNorth.id+" phase: "+playGoNorth.phaser.getPhase()+" "+playGoNorth.running);
+			System.err.println(playGoSouth.id+" phase: "+playGoSouth.phaser.getPhase()+" "+playGoSouth.running);
+			System.err.println(playGoWest.id+" phase: "+playGoWest.phaser.getPhase()+" "+playGoWest.running);
+			System.err.println(playGoEast.id+" phase: "+playGoEast.phaser.getPhase()+" "+playGoEast.running);
+		}
 		//System.out.println("MCTS thread:	Alle Playout Threads haben ihre Simulationen abgeschlossen");
 	}
 	
