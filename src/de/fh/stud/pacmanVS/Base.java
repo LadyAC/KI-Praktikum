@@ -18,11 +18,16 @@ public class Base {
 	public static int[][] xyToIndex;
 	public static int WorldBase[];
 	public static int WorldBaseBig[];
-	
+	private static Vector2 coords[];
 	
 	public static int Vector2ToInt(Vector2 posXY) {
 		return xyToIndex[posXY.getX()][posXY.getY()];
 	}
+	
+	public static Vector2 IntToVector2(int i) {
+		return coords[i];
+	}
+	
 	
  	public static void createWorldBase(VSPacmanTileType[][] world, VSPacmanStartInfo startInfo){
  		
@@ -41,6 +46,12 @@ public class Base {
 						tmp.add(new Field(x,y));
 					}
 			WorldBase = new int[walkable];
+			coords = new Vector2[walkable];
+			walkable=0;
+			for(int y=1;y<world[0].length-1;y++) 
+				for(int x=1;x<world.length-1;x++) 
+					if(world[x][y]!=WALL)
+						coords[walkable++]= new Vector2(x,y);
 			for(int i=0;i<tmp.size();i++) {
 				int x=tmp.get(i).x;
 				int y=tmp.get(i).y;

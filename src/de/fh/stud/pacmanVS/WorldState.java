@@ -19,7 +19,7 @@ public class WorldState {
 	// (zur prüfung ob ein spiel gewonnen wurde beim Rollout)
 	public static int RolloutDepth=200;	// maximale tiefe eine RolloutSimulation
 //	public static int NumberOfPacmans; 	// anzahl der pacmans im spiel ( =2 bei 1vs1 =6 bei 3vs3 )
-	public static Random rn=new Random();
+//	public static Random rn=new Random();
 	public VSPacmanAction action;		// aktion mit dem dieser Zustand erreicht wurde
 	
 	// 0= unser pacman 1
@@ -215,97 +215,6 @@ public class WorldState {
 		return neu;
 	}
 	
-	/*
-	public WorldState expand(VSPacmanAction expandAction){
-		int posNeu,shift,ourTeamDotsSecuredNew,enemyTeamDotsSecuredNew,pID,RoundNext,amZugNeu;
-		int currentPacmanID=zugreihenfolge[amZug];
-		int PacManPosition=PacPos[currentPacmanID]<<1;
-		int PacmanPosData=world[PacManPosition];
-		int[] worldNew,tmpCarry,PacPosNew;
-		int[][] carriedDotsNew;
-		boolean isOwnSide,isOurPacman=currentPacmanID<3;
-		if(amZug==5) {
-			amZugNeu=0;
-			RoundNext=round+1;
-		}else {
-			amZugNeu=amZug+1;
-			RoundNext=round;
-		}
-		
-		
-		
-		posNeu=-42;
-		switch(expandAction) {
-		case GO_WEST:	if((PacmanPosData&B1)!=0)	{		posNeu=PacManPosition-2;	}		break;		//links expandieren
-		case GO_EAST:	if((PacmanPosData&B2)!=0)	{		posNeu=PacManPosition+2;	}		break;		//rechts expandieren
-		case GO_NORTH:	if((shift=(PacmanPosData&E5N2))!=0) {	posNeu=PacManPosition-(shift>>1);}	break;		//oben expandieren
-		case GO_SOUTH: if((shift=(PacmanPosData&E5N7))!=0)	{posNeu=PacManPosition+(shift>>6);}	break;		//unten expandieren
-		default: System.out.println("falscher parameter bei expand method (zulässig: GO_WEST,GO_EAT,GO_NORTH oder GO_SOUTH)"); return null;
-		}
-		if(posNeu==-42) return null;
-			pID=(isOurPacman)?(posNeu==PacPos[0]||posNeu==PacPos[1]||posNeu==PacPos[2])?43:(posNeu==PacPos[3])?3:(posNeu==PacPos[4])?4:(posNeu==PacPos[5])?5:42
-				:(posNeu==PacPos[3]||posNeu==PacPos[4]||posNeu==PacPos[5])?43:(posNeu==PacPos[0])?0:(posNeu==PacPos[1])?1:(posNeu==PacPos[2])?2:42;
-			//pID: 42=kein pacman auf dem Feld 	43=Pacman des eigenen Teams auf dem Feld 	sonst: id des gegner pacmans auf dem feld
-
-		if(pID!=43){// feld wird nicht durch pacman deselben Teams blockiert
-			isOwnSide=(((isOurPacman)?B13:0)^(world[posNeu]&B13))==0;// true wenn der pacman auf seiner teamseite steht
-			ourTeamDotsSecuredNew=ourTeamDotsSecured;
-			enemyTeamDotsSecuredNew=enemyTeamDotsSecured;
-			worldNew=world;	// wenn dich die dots im neuen Knoten unverändert sind ist eine referenz auf das ursprüngliche array ausreichend
-			PacPosNew=PacPos.clone();	//die Position des pacman der am zug ist ändert sich auf jeden fall (ansosnsten wird der knoten nicht expandiert) daher kopie notwendig
-			carriedDotsNew=carriedDots.clone();
-			if(pID!=42){ // auf dem feld was wir betreten wollen steht ein pacman des anderen teams 
-				if(isOwnSide){ // betretenes feld gehört selben team wie der pacman der am zug ist
-					PacPosNew[currentPacmanID]=posNeu>>1;	// pacman trägt seine neue Position ein
-					if(carriedDotsNew[currentPacmanID].length!=0){// rechne Dots die der Pacman der am Zug ist dabeihat seinem Team an und lösche die Liste 
-						if(isOurPacman) 
-							ourTeamDotsSecuredNew+=carriedDotsNew[currentPacmanID].length;		
-						else 			
-							enemyTeamDotsSecuredNew+=carriedDotsNew[currentPacmanID].length;
-						carriedDotsNew[currentPacmanID]=EMPTY_ARRAY;
-					}
-					PacPosNew[pID]=spawnPosition[pID];	// der gegner Pacman der bereits auf dem Feld stand stirbt und legt seine Dots zurück
-					tmpCarry=carriedDotsNew[pID];
-					if(tmpCarry.length>0){
-						worldNew=world.clone();//dot informationen verändern sich im neuen Knoten -> kopie statt referenz nötig
-						for(int i=0;i<tmpCarry.length;i++)
-							worldNew[carriedDotsNew[currentPacmanID][i]]|=B14; // lege den dot wieder in die welt
-					}
-				}else{ //betretenes feld gehört anderem team
-					PacPosNew[currentPacmanID]=spawnPosition[currentPacmanID];
-					tmpCarry=carriedDotsNew[currentPacmanID];
-					if(tmpCarry.length>0) {
-						worldNew=world.clone();//dot informationen verändern sich im neuen Knoten -> kopie statt referenz nötig
-						for(int i=0;i<tmpCarry.length;i++)
-							worldNew[tmpCarry[i]]|=B14; // lege den dot wieder in die welt
-						carriedDotsNew[currentPacmanID]=EMPTY_ARRAY; // entferne alle dots die der Pacman getragen hat aus der liste	
-					}
-				}
-			}else{// auf dem feld was wir betreten wollen steht noch kein pacman
-				PacPosNew[currentPacmanID]=posNeu>>1;
-				if(isOwnSide){ // betretenes feld gehört unserem team (selbes team -> kann hier keine dots fressen)
-					if(carriedDotsNew[currentPacmanID].length!=0) {// rechne Dots die der Pacman der am Zug ist dabeihat seinem Team an und lösche die Liste 
-						if(isOurPacman) 
-							ourTeamDotsSecuredNew+=carriedDotsNew[currentPacmanID].length;		
-						else 			
-							enemyTeamDotsSecuredNew+=carriedDotsNew[currentPacmanID].length;
-						carriedDotsNew[currentPacmanID]=EMPTY_ARRAY;
-					}						
-				}else if((worldNew[posNeu]&B14)!=0){ //betretenes feld ist auf Gegner und auf dem feld lag ein Dot
-					worldNew=world.clone(); //dot informationen verändern sich im neuen Knoten -> kopie statt referenz nötig
-					worldNew[posNeu]&=~B14; //entferne Dot aus der Welt
-					tmpCarry=carriedDotsNew[currentPacmanID];
-					int[] carryNew=new int[tmpCarry.length+1];	
-					System.arraycopy(tmpCarry, 0, carryNew, 0, tmpCarry.length);
-					carryNew[tmpCarry.length]=PacPosNew[currentPacmanID];
-					carriedDotsNew[amZug]=carryNew;	// array wird durch ein größeres array ersetzt das zusätzlich den neu gefressenen Dot enthält			
-				}
-			}
-			return new WorldState(worldNew,carriedDotsNew,PacPosNew,amZugNeu,RoundNext,ourTeamDotsSecuredNew,enemyTeamDotsSecuredNew,expandAction);  // Erstelle neuen Knoten mit den Berechneten werten und füge ihn in die liste ein
-		}
-		return null;
-	}
-	*/
 	private int getScore() {
 		return ourTeamDotsSecured-enemyTeamDotsSecured;
 	}
@@ -315,17 +224,19 @@ public class WorldState {
 	}
 	
 	public void print() {
-		String zustand="";
+		String zustand="runde: "+round+"_"+amZug+"";
 		for(int i=0;i<PacPos.length;i++) {
-			zustand+=PacPos[i]+" ";
+			zustand+=" ("+Base.IntToVector2(PacPos[i])+") ["+carriedDots[i].length+"] ";//PacPos[i]+
 		}
-		zustand+="("+PacPos[zugreihenfolge[amZug]]+") ";
-		zustand+=this.action;
+		zustand+="(AmZug-> "+Base.IntToVector2(PacPos[zugreihenfolge[amZug]])+") ";
+		zustand+=" Secured: "+ourTeamDotsSecured+"/"+enemyTeamDotsSecured+" ";
+		zustand+=action;
 		System.out.println(zustand);
 	}
 	
 	
 	public int SimulateGame() {
+
 		
 		WorldState AktuellerKnoten=this;
 		int MaxSimTiefe=1200; //1200 entspricht 200 Ruden bei 6 pacman
@@ -334,18 +245,37 @@ public class WorldState {
 		WorldState tmp;
 		ArrayList<WorldState> kandidaten;
 		boolean maximize=WorldState.zugreihenfolge[AktuellerKnoten.amZug]<3;
+		
+		
+		
+		if(this.round>400) {
+			System.err.println("Simulation gestarted für folgende runde: "+this.round+"_"+this.amZug);
+			this.print();
+		}
+//		System.out.println("Simulationstart: "+round+"_"+amZug);
+		
+		
+		//TODO simulationsabbruch wenn sich die heuristik des gewählten knoten deutlich verschlechtert oder verbessert hat im vergleich zur start der simulation
+		
+		
+		
 		while(true){
 		
-
-		//TODO simulationsabbruch wenn sich die heuristik des gewählten knoten deutlich verschlechtert oder verbessert hat im vergleich zur start der simulation
-			
-			
-			
 			kandidaten=AktuellerKnoten.expand_AllDirectionsAndWait();// schritt 1 expandiere aktuellen knoten
 			tmp=kandidaten.get(0);
+			
+			
+//			debugLog.append("\n"+tmp.round+"_"+tmp.amZug);
+//			if(System.nanoTime()-sTime > 1000000000 && !printed) { // DEBUGAUSGABE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//				printed=true;
+//				System.out.println("Simulation dauert bereits ca. "+((System.nanoTime()-sTime)/1000000000)+" Sekunden");
+//				System.out.println("DebugLog: "+debugLog.toString());
+//			}
+			
+			
 			bestScore=tmp.getScore();
 			// schritt 2 prüfe ob das simulationsende durch rundenzahl oder erreicht ist falls ja -> return best score
-			if(tmp.isLastMove() || MaxSimTiefe==SimTiefe){
+			if(tmp.isLastMove()){	// untersuche
 				if(maximize){ // letzter schritt wurde von unserem pacman gemacht (score maximieren)
 					for(int i=1;i<kandidaten.size();i++)
 						if(kandidaten.get(i).getScore()>bestScore)
@@ -357,7 +287,7 @@ public class WorldState {
 				}
 				return bestScore;
 			}
-			//TODO simulationstiefe abfragen und eventuell simulation abbrechen
+			//TODO simulationstiefe abfragen und eventuell simulation abbrechen		MaxSimTiefe==SimTiefe
 			
 			// schritt 3 hat das team was zuletzt dran war in einem der knoten gewonnen dutch einsammeln aller Dots? ja -> return score
 			for(int i=0;i<kandidaten.size();i++)
@@ -413,23 +343,13 @@ public class WorldState {
 		// nehme gewählten knoten und starte damit wieder bei schritt 1
 
 
-		
-		
 		/*
 		Simuliert ein Spiel für maximal x(=200?) Runden oder bis eins der Beiden Teams gewonnen 
 		hat und liefert einen Score zurück
 		*/
 	}
 	
-	@Override
-	public boolean equals(Object Weltzustand){		
-		// muss true zurückliefern wenn die zustände inhaltlich identisch sind
-		// dabei muss beachtet werden das die reihenfolge der Dots im 
-		// carriedDots Array egal ist und es nur darauf amkommt das insgesammt
-		// dieselben Dots in der Liste sind!!
-		//TODO
-		return false;
-	}
+
 	
 	
 	

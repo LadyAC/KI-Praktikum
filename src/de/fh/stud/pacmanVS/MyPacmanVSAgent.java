@@ -46,23 +46,23 @@ public class MyPacmanVSAgent extends VSPacmanAgent {
 			}
 			Base.createWorldBase(percept.getTotalLevel(), startInfo);
 			WorldState w = new WorldState(percept);
-			System.out.print("Percept von server erhalten :");
-			System.out.print(Base.Vector2ToInt(percept.getPosition())+" ");
-			System.out.print(Base.Vector2ToInt(percept.getTeammates().get(0))+" ");
-			System.out.print(Base.Vector2ToInt(percept.getTeammates().get(1))+" ");
-			System.out.print(Base.Vector2ToInt(percept.getOpponents().get(0))+" ");
-			System.out.print(Base.Vector2ToInt(percept.getOpponents().get(1))+" ");
-			System.out.println(Base.Vector2ToInt(percept.getOpponents().get(2))+" ");
+			System.out.println("Percept von server erhalten :");
+			System.out.print(Base.Vector2ToInt(percept.getPosition())+" ("+percept.getPosition()+") \n");
+			System.out.print(Base.Vector2ToInt(percept.getTeammates().get(0))+" ("+percept.getTeammates().get(0)+")  ");
+			System.out.print(Base.Vector2ToInt(percept.getTeammates().get(1))+" ("+percept.getTeammates().get(1)+")  ");
+			System.out.print(Base.Vector2ToInt(percept.getOpponents().get(0))+" ("+percept.getOpponents().get(0)+")  ");
+			System.out.print(Base.Vector2ToInt(percept.getOpponents().get(1))+" ("+percept.getOpponents().get(1)+")  ");
+			System.out.println(Base.Vector2ToInt(percept.getOpponents().get(2))+" ("+percept.getOpponents().get(2)+")  ");
 			SearchTree=new MCTS(w);
 			SearchTree.start();
 		}else{			
-			System.out.print("Percept von server erhalten :");
-			System.out.print(Base.Vector2ToInt(percept.getPosition())+" ");
-			System.out.print(Base.Vector2ToInt(percept.getTeammates().get(0))+" ");
-			System.out.print(Base.Vector2ToInt(percept.getTeammates().get(1))+" ");
-			System.out.print(Base.Vector2ToInt(percept.getOpponents().get(0))+" ");
-			System.out.print(Base.Vector2ToInt(percept.getOpponents().get(1))+" ");
-			System.out.println(Base.Vector2ToInt(percept.getOpponents().get(2))+" ");
+			System.out.println("Percept von server erhalten :");
+			System.out.print(Base.Vector2ToInt(percept.getPosition())+" ("+percept.getPosition()+")  \n");
+			System.out.print(Base.Vector2ToInt(percept.getTeammates().get(0))+" ("+percept.getTeammates().get(0)+")  ");
+			System.out.print(Base.Vector2ToInt(percept.getTeammates().get(1))+" ("+percept.getTeammates().get(1)+")  ");
+			System.out.print(Base.Vector2ToInt(percept.getOpponents().get(0))+" ("+percept.getOpponents().get(0)+")  ");
+			System.out.print(Base.Vector2ToInt(percept.getOpponents().get(1))+" ("+percept.getOpponents().get(1)+")  ");
+			System.out.println(Base.Vector2ToInt(percept.getOpponents().get(2))+" ("+percept.getOpponents().get(2)+")  ");
 			while(true){
 				if(SearchTree.lastRoundActionNumber==SearchTree.RoundActionUsed){
 					if( WorldState.zugreihenfolge[SearchTree.root.Weltzustand.amZug]<3) {
@@ -141,7 +141,15 @@ public class MyPacmanVSAgent extends VSPacmanAgent {
 					}					
 					
 					SearchTree.lastRoundActionNumber++;
-					while(SearchTree.lastRoundActionNumber!=SearchTree.RoundActionUsed) {}
+					while(SearchTree.lastRoundActionNumber!=SearchTree.RoundActionUsed) {
+						try {
+							Thread.currentThread().sleep(1000);
+						} catch (InterruptedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						System.out.println("MCTS-thread hat wurzel (nach gegner aktion) noch nicht angepasst _"+SearchTree.phaser.getUnarrivedParties());
+					}
 					System.out.print("Neue Wurzel im Suchbaum: ");
 					SearchTree.root.Weltzustand.print();
 					for(int i=0;i<SearchTree.root.Children.length;i++) {
@@ -150,8 +158,8 @@ public class MyPacmanVSAgent extends VSPacmanAgent {
 					}
 					
 					break;
-				}else {
-					System.out.println("MCTS Thread ist noch nicht bereit für eine neue Wurzel versuche in einigen milisekunden erneut");
+				}else{
+					System.out.println("MCTS Thread ist noch nicht bereit für eine neue Wurzel versuche in einigen milisekunden erneut "+SearchTree.lastRoundActionNumber+"/"+SearchTree.RoundActionUsed);
 					try {
 						Thread.currentThread().sleep(200);
 					} catch (InterruptedException e) {
@@ -188,7 +196,15 @@ public class MyPacmanVSAgent extends VSPacmanAgent {
 				SearchTree.lastRoundActionNumber++;
 				System.out.println("Wir haben aktion "+SelectedAction+" gewählt");
 				
-				while(SearchTree.lastRoundActionNumber!=SearchTree.RoundActionUsed) {}
+				while(SearchTree.lastRoundActionNumber!=SearchTree.RoundActionUsed) {
+					try {
+						Thread.currentThread().sleep(1000);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					System.out.println("MCTS-thread hat wurzel (nach unserer aktion) noch nicht angepasst _"+SearchTree.phaser.getUnarrivedParties());
+				}
 				System.out.print("Neue Wurzel im Suchbaum: ");
 				SearchTree.root.Weltzustand.print();
 				for(int i2=0;i2<SearchTree.root.Children.length;i2++) {
@@ -204,10 +220,7 @@ public class MyPacmanVSAgent extends VSPacmanAgent {
 		if(!found) {
 			System.err.println("Fehler die gewählte aktion in der action methode hat keinen entsprechenden knoten im baum wurzeltausch nicht möglich");
 		}
-		
-		
-		
-		
+
 		
 		return SelectedAction;
 	}

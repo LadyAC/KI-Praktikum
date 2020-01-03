@@ -16,9 +16,8 @@ public class MCTS extends Thread {
 	public Playout playWait,playGoNorth,playGoSouth,playGoWest,playGoEast;
 //	private Phaser phaserWait,phaserGoNorth,phaserGoSouth,phaserGoEast,phaserGoWest;
 	public volatile int WaitScore,GoNorthScore,GoSouthScore,GoWestScore,GoEastScore;// hier schreiben die Threads die die Spiele Simulieren ihre Ergebnisse rein
-	public volatile int phase=0;	// TODO entferne public volatile (sobald die Debugausgaben nicht mehr benötigt werden)
 	// TODO: BestActionSoFar wert zuweisen nach BackPropagation
-	public Phaser phaser;
+	public volatile Phaser phaser;
 	private int iterationCounterSinceRootChange=0;
 
 	/*	
@@ -43,11 +42,11 @@ public class MCTS extends Thread {
 	 */
 	
 
-	
+
 	
 	
 	public void run(){
-		System.out.println("MCTS Thread gestarted");
+		System.out.println("MCTS Thread gestarted Phase:"+this.phaser.getPhase());
 		doIteration();
 		System.out.print("Wurzel: ");
 		root.Weltzustand.print();//Debug Ausgabe
@@ -60,7 +59,7 @@ public class MCTS extends Thread {
 			doIteration();
 			iterationCounterSinceRootChange++;
 			if(RoundActionUsed!=lastRoundActionNumber){
-				//System.out.println("MCTS Thread hat festgestellt das der Main Thread den austausch der Wurzel angeordnet hat");
+//				System.out.println("MCTS Thread hat festgestellt das der Main Thread den austausch der Wurzel angeordnet hat");
 				System.out.println("Iterationen seit Wurzeltausch: "+iterationCounterSinceRootChange);
 				ChangeRoot(this.NewRoot);
 				iterationCounterSinceRootChange=0;
@@ -87,17 +86,17 @@ public class MCTS extends Thread {
 	}
 	
 	public void doIteration() {
-		
+//System.out.println("start iteration");
 		// Step 1&2: Selection and Expansion
-		Node[] Selected=SelectionAndExpansion(); //implemented
-		
+		Node[] Selected=SelectionAndExpansion();
+//System.out.println("#1 Selection&Expansion done");
 		// Step 3: Rollout/Playout
 		SimulateGames(Selected);
-		
+//System.out.println("#2 Simulation done");
 		// Step 4 BackPropagation
 		for(int i=0;i<Selected.length;i++) 
 			Selected[i].BackPropagation(); 
-		
+//System.out.println("#3 Backproagation done");
 		// ermittle besten Zug nach aktuellen stand
 		double bestScore=Double.MIN_VALUE,tmpScore;
 		int index=0;
@@ -112,35 +111,56 @@ public class MCTS extends Thread {
 		//System.out.println("MCTS THREAD: bestactionsofar Updated");
 		BestActionSoFar=root.Children[index].action;
 		//System.out.println("Bisher bester Zug: "+BestActionSoFar+" (iterationen: "+iterationCounterSinceRootChange+")");
-
 		
 		// Tausche die Wurzel des Baums aus falls der Main Thread das angeordnet hat
-
+//System.out.println("end iteration");
 	}
 	
 	
 	private void SimulateGames(Node[] Selected) {
-		phaser.bulkRegister(Selected.length);		// telling the Phaser that how many Simulations/Threads need to finish their work before 
+		phaser = new Phaser(Selected.length);
+//		phaser.bulkRegister(Selected.length);		// telling the Phaser that how many Simulations/Threads need to finish their work before 
 		//System.out.println("MCTS thread:	Bitte "+Selected.length+" Threads mit eine Simulation zu starten");
 		Playout playTmp;
+		if(phaser.getPhase()!=0) {
+			
+		};
 		for(int i=0;i<Selected.length;i++){
 			switch(Selected[i].Weltzustand.action){
-			case WAIT:		playTmp=playWait;		break;
-			case GO_NORTH:	playTmp=playGoNorth;	break;
-			case GO_SOUTH:	playTmp=playGoSouth;	break;
-			case GO_WEST:	playTmp=playGoWest;		break;
-			case GO_EAST:	playTmp=playGoEast;		break;  
-			default:		playTmp=null;
+			case WAIT:		
+				playTmp=playWait;	
+				break;
+			case GO_NORTH:	
+				playTmp=playGoNorth;	
+				break;
+			case GO_SOUTH:	
+				playTmp=playGoSouth;	
+				break;
+			case GO_WEST:	
+				playTmp=playGoWest;		
+				break;
+			case GO_EAST:	
+				playTmp=playGoEast;		
+				break;  
+			default:		
+				playTmp=null;
 			}
 			playTmp.toSimulate=Selected[i].Weltzustand;
-			playTmp.phaser.arrive();
+
+//			System.out.println("send to: Playout id="+playTmp.id+" activation-signal phase= "+playTmp.phaser.getPhase());
+			playTmp.phaser.arrive(); // Signal an den entsprechenden thread die arbeit auszuführen
+			
 			//System.out.println("MCTS THREAD:  Bitte Playout Thread_"+playTmp.id+" aufzuwachen");
 			
 			//try {Thread.sleep(50);}catch (Exception e) {} 	//verzögerung damit die Debug ausgaben in der richtigen reihenfolge auf der console landen
 			
 		}
 		
-		phaser.awaitAdvance(phase++);
+		//try {Thread.currentThread().sleep(50);} catch (InterruptedException e) {}
+//		System.out.println("MCTS phase (nach wartezeit)"+phaser.getPhase());
+		
+		
+		phaser.awaitAdvance(0);
 		//System.out.println("MCTS thread:	Alle Playout Threads haben ihre Simulationen abgeschlossen");
 	}
 	
@@ -149,33 +169,16 @@ public class MCTS extends Thread {
 	public Node[] SelectionAndExpansion(){
 		Node Selected=root;
 		while(true){
-			if(Selected.Children==null){// Node is a Leaf node
+			if(Selected.Children==null){// Knoten ist ein Blattknoten
 				Selected.expand();
-//				System.out.println("Baum expandiert");
-//				System.out.println("Parent Node:");
-//				System.out.print("PacPos -> ");
-//				for(int i=0;i<6;i++)
-//					System.out.print(Selected.Weltzustand.PacPos[i]+" \t");
-//				System.out.print("\t Pacman auf Feld "+Selected.Weltzustand.PacPos[WorldState.zugreihenfolge[Selected.Weltzustand.amZug]]+" am Zug");
-//				for(int i=0;i<Selected.Children.length;i++) {
-//					System.out.println("\nChildnode "+i+":");
-//					System.out.print("PacPos -> ");
-//					for(int i2=0;i2<6;i2++) {
-//						System.out.print(Selected.Children[i].Weltzustand.PacPos[i2]+" \t");
-//					}
-//					System.out.print("\tAction -> "+Selected.Children[i].Weltzustand.action+" amZug: "+Selected.Children[i].Weltzustand.PacPos[WorldState.zugreihenfolge[Selected.Children[i].Weltzustand.amZug]]);
-//				}
-//				System.out.println("\nnode expansion done");
 				if(Selected.Children[0]!=null){
 					return Selected.Children;
 				}else{
-//					System.out.println("Select Node has no Children after expansion (this might be caused by a bug or it's just Blocked)");
 					Node[] result = {Selected};
 					return result;
 				}
 			}else{
 				if(Selected.Children.length==0){
-//					System.out.println("Select Node has no Children (this might be caused by a bug)");
 					Node[] result = {Selected};
 					return result;
 				}else{
@@ -202,9 +205,12 @@ public class MCTS extends Thread {
 				break;
 			}
 		if(!found)
-			System.err.println("Mit der neuen Wurzel des Baums stimmt was nicht!!!!");
+			System.out.println("!!!!!!!!!!!!!!Mit der neuen Wurzel des Baums stimmt was nicht!!!!");
 		
-		//System.out.println("MCTS Thread: tausche Wurzel aus");
+		System.out.println("MCTS Thread: tausche Wurzel aus");
+		//System.out.print("neue Wurzel: ");
+		//newRoot.Weltzustand.print();
+		
 		root=newRoot;
 		root.parent=null;
 		doIteration();	// stellt sicher das die KindKnoten erzeugt werden bevor der Main Thread erfährt das die wurzel ausgetauscht wurde

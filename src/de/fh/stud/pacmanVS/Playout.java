@@ -6,17 +6,14 @@ public class Playout extends Thread{
 	public volatile double score;
 	int id;
 	MCTS tree;
-	Phaser MCTSphaser;
 	Phaser phaser;
-	volatile WorldState toSimulate; 
-	// 0=waiting for new worldstate	
-	// 1=Worldstate needs to be simulated	
-	// 2=Simulating
+	private int phase=0;
+	public volatile WorldState toSimulate;
+
 
 	
 	public Playout(int id,MCTS tree) {
 		super("PlayoutThread_"+id);
-		this.MCTSphaser=tree.phaser;
 		this.id=id;
 		this.tree=tree;
 		this.phaser=new Phaser(1);
@@ -24,10 +21,16 @@ public class Playout extends Thread{
 	
 	public void run() {
 		while(true){
-			phaser.awaitAdvance(phaser.getPhase());	// warte auf anweisung des MCTS threads weiterzuarbeiten
+			phaser.awaitAdvance(phase);	// warte auf anweisung des MCTS threads weiterzuarbeiten
+			phase++;
+//			try {Thread.currentThread().sleep(100);} catch (InterruptedException e) {} // delay für debugausgaben
 			
-//			System.out.println("PlayoutThread "+id+": führe Simulation aus (MCTS-Phase="+tree.phase+")");
+			
+			
+//			System.out.println("recieved: Playout thread id_"+id+" phase="+phaser.getPhase());
+//			System.out.println("Playout simulationstartroud: "+toSimulate.round+"_"+toSimulate.amZug);
 			int score=toSimulate.SimulateGame();
+//			System.out.println("Playout Thread "+id+" phase:"+MCTSphaser.getPhase()+" -> Score: "+score);
 			switch(id){
 			case 0: tree.WaitScore=score;  		break;
 			case 1: tree.GoWestScore=score;		break;
@@ -37,7 +40,9 @@ public class Playout extends Thread{
 			default: System.out.println("invalid Playout ID ="+id);
 			}
 //			System.out.println("PlayoutThread "+id+": habe die Simulation Abgeschlossen");
-			MCTSphaser.arriveAndDeregister();	// sage dem MCTS thread das die Berechnung abgeschlossen ist
+			//System.out.println("Playout thread done_"+id);
+			tree.phaser.arrive();	// sage dem MCTS thread das die Berechnung abgeschlossen ist
+//			System.out.println("Playout thread_"+id+" phase= "+phaser.getPhase()+" tree phaser ARRIVED:"+tree.phaser.getArrivedParties()+" UNARRIVED:"+tree.phaser.getUnarrivedParties()+" Phase: "+tree.phaser.getPhase());
 //			System.out.println("mctsphaser registered parties "+MCTSphaser.getRegisteredParties());
 		}
 		
