@@ -30,7 +30,7 @@ public class Node {
 		ArrayList<WorldState> neueZustaende=Weltzustand.expand_AllDirectionsAndWait();
 		Children=new Node[neueZustaende.size()];
 		for(int i=0;i<neueZustaende.size();i++) {
-			Children[i]= new Node(neueZustaende.get(i),this,this.tree);
+			Children[i]= new Node(neueZustaende.get(i),this,tree);
 		}
 			
 		//Weltzustand=null;
@@ -63,7 +63,7 @@ public class Node {
 	
 	
 	public double getUCB1() {
-		return (simulationCount==0)? Double.MAX_VALUE : totalScore+2*Math.sqrt(Math.log(parent.simulationCount)/simulationCount);
+		return (simulationCount==0)? Double.MAX_VALUE : ((double)totalScore)/simulationCount+2*Math.sqrt(Math.log(tree.root.simulationCount)/simulationCount);
 	}
 	
 	

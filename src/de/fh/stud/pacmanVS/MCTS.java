@@ -187,26 +187,30 @@ public class MCTS extends Thread {
 	public Node[] SelectionAndExpansion(){
 		Node Selected=root;
 		while(true){
-			if(Selected.Children==null){// Knoten ist ein Blattknoten
-				Selected.expand();
-				if(Selected.Children[0]!=null){
-					return Selected.Children;
-				}else{
+			if(Selected.Children==null){  // Knoten ist ein Blattknoten bei dem noch nie verssucht wurde zu expandierene
+				Selected.expand();		// -> expandiere Blattknoten
+				if(Selected.Children.length==0){ // knoten ist immer noch ein Blattknoten weil expansion keine Knoten erzeugen konnte
 					Node[] result = {Selected};
 					return result;
 				}
-			}else{
-				if(Selected.Children.length==0){
+				if(Selected.Children[0]!=null){	
+					return Selected.Children;	
+				}else{							
+					System.err.println("SelectionAndExpansion hat festegestellt das der ausgewähöte kindknoten null ist das sollte eigentlich nicht passieren");
 					Node[] result = {Selected};
+					return result;				
+				}
+			}else{
+				if(Selected.Children.length==0){ // knoten ist ein Blattknoten bei dem ein früherer expanssionsversuch keine neuen Knoten erzeugen konnte
+					Node[] result = {Selected};	// gebe den aktuellen knoten zurück
 					return result;
-				}else{
-					double MaxUCB1score=Double.MIN_VALUE;
+				}else{//es sind kindknoten vorhanden ->  berechne die UCB1 werte für die einzelnen Kindknoten und ermittle den knoten mit dem größten score
+					double MaxUCB1score=Double.MIN_VALUE; 
 					int index=0;
-					double[] UCB1Score=new double[Selected.Children.length];
+					double[] UCB1Scores=new double[Selected.Children.length];
 					for(int i=0;i<Selected.Children.length;i++){
-						if((UCB1Score[i]=Selected.Children[i].getUCB1())>MaxUCB1score) {
-							MaxUCB1score=UCB1Score[index=i];
-							if(MaxUCB1score==Double.MAX_VALUE) break;
+						if((UCB1Scores[i]=Selected.Children[i].getUCB1())>MaxUCB1score) {
+							MaxUCB1score=UCB1Scores[index=i];
 						}
 					}
 					Selected=Selected.Children[index];
