@@ -14,7 +14,7 @@ public class MCTS extends Thread {
 	public volatile int lastRoundActionNumber;		//		write		|		read
 	public volatile int RoundActionUsed;			//		read 		|		write
 	public volatile VSPacmanAction BestActionSoFar;	//		read 		|		write						 (Die Aktuelle Zugempfehlung des Suchbaums)
-
+	
 	public Playout playWait,playGoNorth,playGoSouth,playGoWest,playGoEast;
 //	private Phaser phaserWait,phaserGoNorth,phaserGoSouth,phaserGoEast,phaserGoWest;
 	public volatile int WaitScore,GoNorthScore,GoSouthScore,GoWestScore,GoEastScore;// hier schreiben die Threads die die Spiele Simulieren ihre Ergebnisse rein
@@ -65,6 +65,9 @@ public class MCTS extends Thread {
 		
 		while(true){
 			doIteration();
+			if(constants.DEBUG_TREE) {
+				System.out.println(TreeTraversel());
+			}
 			iterationCounterSinceRootChange++;
 			if(RoundActionUsed!=lastRoundActionNumber){
 //				System.out.println("MCTS Thread hat festgestellt das der Main Thread den austausch der Wurzel angeordnet hat");
@@ -119,10 +122,13 @@ public class MCTS extends Thread {
 			}
 		}
 		//System.out.println("MCTS THREAD: bestactionsofar Updated");
-		BestActionSoFar=root.Children[index].action;
-		if(constants.DEBUG_BESTACTION) {
-			System.out.println("Bisher bester Zug: "+BestActionSoFar+" (iterationen: "+iterationCounterSinceRootChange+")");			
+		if(constants.DEBUG_BESTACTION){
+			if(BestActionSoFar!=root.Children[index].action || iterationCounterSinceRootChange%1000==0) {
+				System.out.println("Bisher bester Zug: "+BestActionSoFar+" (iterationen: "+iterationCounterSinceRootChange+")");
+			}
 		}
+		BestActionSoFar=root.Children[index].action;
+
 
 		
 		// Tausche die Wurzel des Baums aus falls der Main Thread das angeordnet hat
@@ -286,7 +292,24 @@ public class MCTS extends Thread {
 	}
 	
 
+	public String TreeTraversel(){
+		StringBuilder treeStringbuilder = new StringBuilder();
+		treeStringbuilder.append("TREE START:\n");
+		TreeTraversel(root,treeStringbuilder);
+		treeStringbuilder.append("TREE END\n");
+		return treeStringbuilder.toString();
+	}
 	
+	private void TreeTraversel(Node n,StringBuilder treeStringbuilder){
+		treeStringbuilder.append(n.NodeToString());
+		treeStringbuilder.append("\n");
+		if(n.Children!=null) {
+			for(int i=0;i<n.Children.length;i++) {
+				TreeTraversel(n.Children[i],treeStringbuilder);
+			}		
+		}
+
+	}
 	
 	
 }

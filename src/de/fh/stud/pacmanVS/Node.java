@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import de.fh.pacmanVS.enums.VSPacmanAction;
 
 public class Node {
+	private static int idCounter=0;// nur für debugging
 	
 	Node parent;				// der ElternKnoten (null wenn dier Knoten die Wurzel des Baums ist
 	Node[] Children;
@@ -14,12 +15,15 @@ public class Node {
 	int simulationCount=0;		// anzahl all aller spielsimulationen von diesem Knoten und aller Kind Knoten
 	int totalScore=0;				// gesammt score aller gespielten Simulationen von diesem knoten und aller kind knoten (optional: + heuristische bewertung dieses Knoten)
 	
+	int ownScore=0;				// nur für debugging
+	final int id;						// nur für debugging
 	
 	public Node(WorldState Weltzustand,MCTS tree) {	// Kosntruktor für wurzelknoten
 		this(Weltzustand,null,tree);
 	}
 	
 	public Node(WorldState Weltzustand,Node parent,MCTS tree) {
+		this.id=idCounter++;
 		this.Weltzustand=Weltzustand;
 		this.parent=parent;
 		this.action=Weltzustand.action;
@@ -49,10 +53,10 @@ public class Node {
 		case GO_SOUTH:	Score=tree.GoSouthScore;	break;
 		case GO_WEST: 	Score=tree.GoWestScore;		break;
 		case GO_EAST: 	Score=tree.GoEastScore;		break;
-		default: System.out.println("Fehler in BackPropagation Methode: action="+action+" DAS PROBLEM MUSS BEHOBEN WERDEN!");
+		default: System.err.println("Fehler in BackPropagation Methode: action="+action+" DAS PROBLEM MUSS BEHOBEN WERDEN!");
 			Score=123456789;
 		}
-
+		this.ownScore=Score;
 		while(currentNode!=null){
 			currentNode.simulationCount++;
 			currentNode.totalScore+=Score;
@@ -66,6 +70,19 @@ public class Node {
 		double Score= (simulationCount==0)? Double.MAX_VALUE : ((double)totalScore)/simulationCount+2*Math.sqrt(Math.log(tree.root.simulationCount)/simulationCount);
 		if(constants.DEBUG_UCB1) System.out.println("UCB1= "+Score+"    NodeCount="+simulationCount+" TreeCount="+tree.root.simulationCount+" totalScore="+totalScore);
 		return Score;
+	}
+	
+	
+	public String NodeToString() {
+		String result="";
+		result+="parentID "+((parent==null)?"null":parent.id)+" ownID="+id+" ownScore="+ownScore+" totalScore="+totalScore+" simulationcount="+simulationCount+" UCB1="+getUCB1();
+		if(Children!=null) {
+			for(int i=0;i<Children.length;i++) {
+				result+=" ChildID="+Children[i].id;
+			}
+		}
+
+		return result;
 	}
 	
 	

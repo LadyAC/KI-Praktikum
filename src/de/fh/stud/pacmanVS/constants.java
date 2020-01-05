@@ -9,6 +9,7 @@ public class constants {
 	public static boolean DEBUG_ACTION=false;
 	public static boolean DEBUG_SELECTION=false;
 	public static boolean DEBUG_BESTACTION=true;
+	public static boolean DEBUG_TREE=false;
 	
 	
 	

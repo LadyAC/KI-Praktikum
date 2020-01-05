@@ -229,7 +229,10 @@ public class WorldState {
 	}
 	
 	private int getScore() {
-		return ourTeamDotsSecured-enemyTeamDotsSecured;
+		//return ourTeamDotsSecured-enemyTeamDotsSecured;
+		if(ourTeamDotsSecured-enemyTeamDotsSecured >0) return 1;
+		if(ourTeamDotsSecured-enemyTeamDotsSecured <0) return -1;
+		return 0;
 	}
 	
 	private boolean isLastMove() {
@@ -283,13 +286,14 @@ public class WorldState {
 		
 			kandidaten=AktuellerKnoten.expand_AllDirectionsAndWait();// schritt 1 expandiere aktuellen knoten
 			if(kandidaten.size()==0) {
+				
 				System.err.println("Simulation beendet weil keine kindknoten vorhanden sind (sollte erst kurz vor spielende passieren sonst deutet es auf einen fehler hin)");
 				return AktuellerKnoten.getScore();
 			}
 			tmp=kandidaten.get(0);
 			
 		
-			if(System.nanoTime()-sTime > 500000000) {
+			if(System.nanoTime()-sTime > 1000000000) {// 10 sekunden
 				System.err.println("Playout Simulation abgebrochen wegen zeitüberschreitung (>0.5s)");
 				return 0;
 			}
