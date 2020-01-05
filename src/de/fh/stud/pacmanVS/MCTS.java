@@ -213,7 +213,7 @@ public class MCTS extends Thread {
 					Node[] result = {Selected};	// gebe den aktuellen knoten zurück
 					return result;
 				}else{//es sind kindknoten vorhanden ->  berechne die UCB1 werte für die einzelnen Kindknoten und ermittle den knoten mit dem größten score
-					double MaxUCB1score=Double.MIN_VALUE; 
+					double MaxUCB1score=Double.NEGATIVE_INFINITY; 
 					int index=0;
 					double[] UCB1Scores=new double[Selected.Children.length];
 					
@@ -228,6 +228,13 @@ public class MCTS extends Thread {
 						}						
 						if((UCB1Scores[i]=Selected.Children[i].getUCB1())>MaxUCB1score) {
 							MaxUCB1score=UCB1Scores[index=i];
+						}
+					}
+					if(MaxUCB1score==Double.MIN_VALUE) {
+						System.err.println("UCB1 SCore ist Double.MIN_VALUE");
+						System.err.println("anzahl verglichener knoten: "+Selected.Children.length);
+						for(int i=0;i<Selected.Children.length;i++){
+							System.err.println("Score ="+UCB1Scores[index=i]+" -> "+(UCB1Scores[index=i]>Double.MIN_VALUE));
 						}
 					}
 					if(constants.DEBUG_UCB1) {

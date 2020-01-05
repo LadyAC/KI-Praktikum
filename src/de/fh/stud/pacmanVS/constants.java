@@ -1,7 +1,7 @@
 package de.fh.stud.pacmanVS;
 
 public class constants {
-	public static boolean DEBUG_UCB1=true;
+	public static boolean DEBUG_UCB1=false;
 	public static boolean DEBUG_CHILDNODES=false;
 	public static boolean DEBUG_PERCEPTS=false;
 	public static boolean DEBUG_ROOT=true;
