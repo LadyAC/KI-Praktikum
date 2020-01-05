@@ -46,23 +46,29 @@ public class MyPacmanVSAgent extends VSPacmanAgent {
 			}
 			Base.createWorldBase(percept.getTotalLevel(), startInfo);
 			WorldState w = new WorldState(percept);
-			System.out.println("Percept von server erhalten :");
-			System.out.print(Base.Vector2ToInt(percept.getPosition())+" ("+percept.getPosition()+") \n");
-			System.out.print(Base.Vector2ToInt(percept.getTeammates().get(0))+" ("+percept.getTeammates().get(0)+")  ");
-			System.out.print(Base.Vector2ToInt(percept.getTeammates().get(1))+" ("+percept.getTeammates().get(1)+")  ");
-			System.out.print(Base.Vector2ToInt(percept.getOpponents().get(0))+" ("+percept.getOpponents().get(0)+")  ");
-			System.out.print(Base.Vector2ToInt(percept.getOpponents().get(1))+" ("+percept.getOpponents().get(1)+")  ");
-			System.out.println(Base.Vector2ToInt(percept.getOpponents().get(2))+" ("+percept.getOpponents().get(2)+")  ");
+			if(constants.DEBUG_PERCEPTS) {
+				System.out.println("Percept von server erhalten :");
+				System.out.print(Base.Vector2ToInt(percept.getPosition())+" ("+percept.getPosition()+") \n");
+				System.out.print(Base.Vector2ToInt(percept.getTeammates().get(0))+" ("+percept.getTeammates().get(0)+")  ");
+				System.out.print(Base.Vector2ToInt(percept.getTeammates().get(1))+" ("+percept.getTeammates().get(1)+")  ");
+				System.out.print(Base.Vector2ToInt(percept.getOpponents().get(0))+" ("+percept.getOpponents().get(0)+")  ");
+				System.out.print(Base.Vector2ToInt(percept.getOpponents().get(1))+" ("+percept.getOpponents().get(1)+")  ");
+				System.out.println(Base.Vector2ToInt(percept.getOpponents().get(2))+" ("+percept.getOpponents().get(2)+")  ");
+			}
+
 			SearchTree=new MCTS(w);
 			SearchTree.start();
 		}else{			
-			System.out.println("Percept von server erhalten :");
-			System.out.print(Base.Vector2ToInt(percept.getPosition())+" ("+percept.getPosition()+")  \n");
-			System.out.print(Base.Vector2ToInt(percept.getTeammates().get(0))+" ("+percept.getTeammates().get(0)+")  ");
-			System.out.print(Base.Vector2ToInt(percept.getTeammates().get(1))+" ("+percept.getTeammates().get(1)+")  ");
-			System.out.print(Base.Vector2ToInt(percept.getOpponents().get(0))+" ("+percept.getOpponents().get(0)+")  ");
-			System.out.print(Base.Vector2ToInt(percept.getOpponents().get(1))+" ("+percept.getOpponents().get(1)+")  ");
-			System.out.println(Base.Vector2ToInt(percept.getOpponents().get(2))+" ("+percept.getOpponents().get(2)+")  ");
+			if(constants.DEBUG_PERCEPTS) {
+				System.out.println("Percept von server erhalten :");
+				System.out.print(Base.Vector2ToInt(percept.getPosition())+" ("+percept.getPosition()+")  \n");
+				System.out.print(Base.Vector2ToInt(percept.getTeammates().get(0))+" ("+percept.getTeammates().get(0)+")  ");
+				System.out.print(Base.Vector2ToInt(percept.getTeammates().get(1))+" ("+percept.getTeammates().get(1)+")  ");
+				System.out.print(Base.Vector2ToInt(percept.getOpponents().get(0))+" ("+percept.getOpponents().get(0)+")  ");
+				System.out.print(Base.Vector2ToInt(percept.getOpponents().get(1))+" ("+percept.getOpponents().get(1)+")  ");
+				System.out.println(Base.Vector2ToInt(percept.getOpponents().get(2))+" ("+percept.getOpponents().get(2)+")  ");
+			}
+
 			while(true){
 				if(SearchTree.lastRoundActionNumber==SearchTree.RoundActionUsed){
 					if( WorldState.zugreihenfolge[SearchTree.root.Weltzustand.amZug]<3) {
@@ -126,10 +132,13 @@ public class MyPacmanVSAgent extends VSPacmanAgent {
 					
 					
 					if(newRoot!=null) {
-						System.out.println("gegner hat aktion aktion: "+newRoot.action+" gewählt");
+						if(constants.DEBUG_CHILDNODES) {
+							System.out.println("gegner hat aktion aktion: "+newRoot.action+" gewählt");
+						}
+						
 						SearchTree.NewRoot=newRoot;
 						//System.out.println("Main Thread hat MCTS Thread angewiesen seine Wurzel auszutauschen (wegen neuen percept von server)");
-					}else{// Debug Ausgaben
+					}else {// Debug Ausgaben
 						System.out.println("FEHLER!!!!  die aktuelle Situation wurde vom Suchbaum nicht vorhergesehen ");
 						System.out.println("pacman positionen laut percept");
 						System.out.print(Base.Vector2ToInt(percept.getPosition())+"\t");
@@ -143,23 +152,30 @@ public class MyPacmanVSAgent extends VSPacmanAgent {
 					SearchTree.lastRoundActionNumber++;
 					while(SearchTree.lastRoundActionNumber!=SearchTree.RoundActionUsed) {
 						try {
-							Thread.currentThread().sleep(1000);
+							if(constants.DEBUG_THREADSYNC) {
+								System.out.println("MCTS-thread hat wurzel (nach gegner aktion) noch nicht angepasst Arrived:"+SearchTree.phaser.getArrivedParties()+"/"+SearchTree.phaser.getRegisteredParties()+" Phase: "+SearchTree.phaser.getPhase());
+							}
+							Thread.currentThread().sleep(100);
 						} catch (InterruptedException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
-						System.out.println("MCTS-thread hat wurzel (nach gegner aktion) noch nicht angepasst Arrived:"+SearchTree.phaser.getArrivedParties()+"/"+SearchTree.phaser.getRegisteredParties()+" Phase: "+SearchTree.phaser.getPhase());
+						
 					}
-					System.out.print("Neue Wurzel im Suchbaum: ");
-					SearchTree.root.Weltzustand.print();
-					for(int i=0;i<SearchTree.root.Children.length;i++) {
-						System.out.print("Kindknoten "+i+": ");
-						SearchTree.root.Children[i].Weltzustand.print();
+					if(constants.DEBUG_ROOT) {
+						System.out.print("Neue Wurzel im Suchbaum: ");
+						SearchTree.root.Weltzustand.print();
 					}
-					
+					if(constants.DEBUG_CHILDNODES)
+						for(int i=0;i<SearchTree.root.Children.length;i++) {
+							System.out.print("Kindknoten "+i+": ");
+							SearchTree.root.Children[i].Weltzustand.print();
+						}
 					break;
 				}else{
-					System.out.println("MCTS Thread ist noch nicht bereit für eine neue Wurzel versuche in einigen milisekunden erneut "+SearchTree.lastRoundActionNumber+"/"+SearchTree.RoundActionUsed);
+					if(constants.DEBUG_THREADSYNC) {
+						System.out.println("MCTS Thread ist noch nicht bereit für eine neue Wurzel versuche in einigen milisekunden erneut "+SearchTree.lastRoundActionNumber+"/"+SearchTree.RoundActionUsed);
+					}
 					try {
 						Thread.currentThread().sleep(200);
 					} catch (InterruptedException e) {
@@ -194,24 +210,32 @@ public class MyPacmanVSAgent extends VSPacmanAgent {
 			if(SearchTree.root.Children[i].action==SelectedAction) {
 				SearchTree.NewRoot=SearchTree.root.Children[i];
 				SearchTree.lastRoundActionNumber++;
-				System.out.println("Wir haben aktion "+SelectedAction+" gewählt");
-				
+				if(constants.DEBUG_ACTION) {
+					System.out.println("Wir haben aktion "+SelectedAction+" gewählt");
+				}
 				while(SearchTree.lastRoundActionNumber!=SearchTree.RoundActionUsed) {
 					try {
-						Thread.currentThread().sleep(1000);
+						Thread.currentThread().sleep(100);
 					} catch (InterruptedException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-					System.out.println("MCTS-thread hat wurzel (nach unserer aktion) noch nicht angepasst Arrived:"+SearchTree.phaser.getArrivedParties()+"/"+SearchTree.phaser.getRegisteredParties()+" Phase: "+SearchTree.phaser.getPhase());
+					if(constants.DEBUG_THREADSYNC) {
+						System.out.println("MCTS-thread hat wurzel (nach unserer aktion) noch nicht angepasst Arrived:"+SearchTree.phaser.getArrivedParties()+"/"+SearchTree.phaser.getRegisteredParties()+" Phase: "+SearchTree.phaser.getPhase());
+					}
+					
 				}
-				System.out.print("Neue Wurzel im Suchbaum: ");
-				SearchTree.root.Weltzustand.print();
-				for(int i2=0;i2<SearchTree.root.Children.length;i2++) {
-					System.out.print("Kindknoten "+i2+": ");
-					SearchTree.root.Children[i2].Weltzustand.print();
+				if(constants.DEBUG_ROOT) {
+					System.out.print("Neue Wurzel im Suchbaum: ");
+					SearchTree.root.Weltzustand.print();
 				}
-				
+				if(constants.DEBUG_CHILDNODES) {
+					for(int i2=0;i2<SearchTree.root.Children.length;i2++) {
+						System.out.print("Kindknoten "+i2+": ");
+						SearchTree.root.Children[i2].Weltzustand.print();
+					}
+				}
+
 				found=true;
 				//System.out.println("MAIN THREAD: ordne wurzeltausch nach eigenen zug an ("+SearchTree.lastRoundActionNumber+")");
 				break;

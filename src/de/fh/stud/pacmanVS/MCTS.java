@@ -50,19 +50,27 @@ public class MCTS extends Thread {
 	public void run(){
 		System.out.println("MCTS Thread gestarted Phase:"+this.phaser.getPhase());
 		doIteration();
-		System.out.print("Wurzel: ");
-		root.Weltzustand.print();//Debug Ausgabe
-		for(int i=0;i<root.Children.length;i++) {
-			System.out.print("Kindknoten "+i+" : ");
-			root.Children[i].Weltzustand.print();
+		if(constants.DEBUG_ROOT) {
+			System.out.print("Wurzel: ");
+			root.Weltzustand.print();			
 		}
+		if(constants.DEBUG_CHILDNODES) {
+			for(int i=0;i<root.Children.length;i++) {
+				System.out.print("Kindknoten "+i+" : ");
+				root.Children[i].Weltzustand.print();
+			}
+		}
+
+
 		
 		while(true){
 			doIteration();
 			iterationCounterSinceRootChange++;
 			if(RoundActionUsed!=lastRoundActionNumber){
 //				System.out.println("MCTS Thread hat festgestellt das der Main Thread den austausch der Wurzel angeordnet hat");
-				System.out.println("Iterationen seit Wurzeltausch: "+iterationCounterSinceRootChange);
+				if(constants.DEBUG_ROOT) {
+					System.out.println("Iterationen seit Wurzeltausch: "+iterationCounterSinceRootChange);
+				}
 				ChangeRoot(this.NewRoot);
 				iterationCounterSinceRootChange=0;
 			}
@@ -208,10 +216,22 @@ public class MCTS extends Thread {
 					double MaxUCB1score=Double.MIN_VALUE; 
 					int index=0;
 					double[] UCB1Scores=new double[Selected.Children.length];
+					
+					if(constants.DEBUG_UCB1) {
+						System.out.println("Berechne UCB1 score der kindknoten");
+					}
+					
 					for(int i=0;i<Selected.Children.length;i++){
+						if(constants.DEBUG_UCB1) {
+							System.out.print("KindKnoten: ");
+							Selected.Children[i].Weltzustand.print();
+						}						
 						if((UCB1Scores[i]=Selected.Children[i].getUCB1())>MaxUCB1score) {
 							MaxUCB1score=UCB1Scores[index=i];
 						}
+					}
+					if(constants.DEBUG_UCB1) {
+						System.out.println("waehle kindknoten nummer "+index+" mit UCB1 Score="+MaxUCB1score);
 					}
 					Selected=Selected.Children[index];
 				}
@@ -228,8 +248,10 @@ public class MCTS extends Thread {
 			}
 		if(!found)
 			System.out.println("!!!!!!!!!!!!!!Mit der neuen Wurzel des Baums stimmt was nicht!!!!");
+		if(constants.DEBUG_ROOT) {
+			System.out.println("MCTS Thread: tausche Wurzel aus");
+		}
 		
-		System.out.println("MCTS Thread: tausche Wurzel aus");
 		//System.out.print("neue Wurzel: ");
 		//newRoot.Weltzustand.print();
 		

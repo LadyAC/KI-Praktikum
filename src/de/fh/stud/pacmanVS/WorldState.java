@@ -104,6 +104,11 @@ public class WorldState {
 	}
 	
 	public ArrayList<WorldState> expand_AllDirectionsAndWait() {
+		if(amZug==5 && round == 400 || DotsOnEachSide==enemyTeamDotsSecured || DotsOnEachSide==ourTeamDotsSecured) {
+			return new ArrayList<WorldState>(0);
+		}
+		
+		
 		ArrayList<WorldState> neu=expand_AllDirections();
 		int RoundNext,amZugNeu;
 		if(amZug==5) {
@@ -262,6 +267,10 @@ public class WorldState {
 		while(true){
 		
 			kandidaten=AktuellerKnoten.expand_AllDirectionsAndWait();// schritt 1 expandiere aktuellen knoten
+			if(kandidaten.size()==0) {
+				System.err.println("Simulation beendet weil keine kindknoten vorhanden sind (sollte erst kurz vor spielende passieren sonst deutet es auf einen fehler hin)");
+				return AktuellerKnoten.getScore();
+			}
 			tmp=kandidaten.get(0);
 			
 		
@@ -273,7 +282,7 @@ public class WorldState {
 			
 			bestScore=tmp.getScore();
 			// schritt 2 prüfe ob das simulationsende durch rundenzahl oder erreicht ist falls ja -> return best score
-			if(tmp.isLastMove()){	// untersuche
+			if(tmp.isLastMove()){	
 				if(maximize){ // letzter schritt wurde von unserem pacman gemacht (score maximieren)
 					for(int i=1;i<kandidaten.size();i++)
 						if(kandidaten.get(i).getScore()>bestScore)

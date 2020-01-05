@@ -53,7 +53,7 @@ public class Node {
 			Score=123456789;
 		}
 
-		while(currentNode.parent!=null){
+		while(currentNode!=null){
 			currentNode.simulationCount++;
 			currentNode.totalScore+=Score;
 			currentNode=currentNode.parent;
@@ -63,7 +63,9 @@ public class Node {
 	
 	
 	public double getUCB1() {
-		return (simulationCount==0)? Double.MAX_VALUE : ((double)totalScore)/simulationCount+2*Math.sqrt(Math.log(tree.root.simulationCount)/simulationCount);
+		double Score= (simulationCount==0)? Double.MAX_VALUE : ((double)totalScore)/simulationCount+2*Math.sqrt(Math.log(tree.root.simulationCount)/simulationCount);
+		if(constants.DEBUG_UCB1) System.out.println("UCB1= "+Score+"    NodeCount="+simulationCount+" TreeCount="+tree.root.simulationCount+" totalScore="+totalScore);
+		return Score;
 	}
 	
 	
