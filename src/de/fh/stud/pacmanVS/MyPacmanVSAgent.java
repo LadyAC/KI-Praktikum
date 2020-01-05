@@ -198,7 +198,7 @@ public class MyPacmanVSAgent extends VSPacmanAgent {
 
 	@Override
 	public VSPacmanAction action() {
-		while(System.nanoTime()-StartTimeUpdateState < 500000000){	// gebe Suchbaum MINDESTENS 0,5 Sekunden Zeit für das auswählen eines zuges
+		while(System.nanoTime()-StartTimeUpdateState < 5000000000L){	// gebe Suchbaum MINDESTENS 0,5 Sekunden Zeit für das auswählen eines zuges
 			try {
 				Thread.currentThread().sleep(200);	
 			} catch (InterruptedException e) {

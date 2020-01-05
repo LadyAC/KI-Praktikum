@@ -1,25 +1,17 @@
-V2.0 22 23
-PVS_Extreme_02.pmvsl
-W W W W W W W W W W W W W W W W W W W W W W 
-W W W D D D D D D D D D D D D D D D D W W W 
-W E E E W W D W D D W W D D W D W W E E BST,WEST W 
-W W W D W W W W D W W W W D W W W W D W W W 
-W W D D D D D D D D W W D D D D D D D D W W 
-W W D W W D W W W D D D D W W W D W W D W W 
-W W D W W D W W W D W W D W W W D W W D W W 
-W W D W D D D D D D W W D D D D D D W D W W 
-W W D D D W D D W D W W D W D D W D D D W W 
-W W W W D D W W D D D D D D W W D D W W W W 
-W W W W D W W W W D W W D W W W W D W W W W 
-W E E E D W W W W D W W D W W W W D E E BSH,WEST W 
-W W W W D W W W W D W W D W W W W D W W W W 
-W W W W D D W W D D E D D D W W D D W W W W 
-W W D D D W D D W D W W D W D D W D D D W W 
-W W D W D D D D D D W W D D D D D D W D W W 
-W W D W W D W W W D W W D W W W D W W D W W 
-W W D W W D W W W D D D D W W W D W W D W W 
-W W D D D D D D D D W W D D D D D D D D W W 
-W W W D W W W W D W W W W D W W W W D W W W 
-W E E E W W W W D D W W D D W W W W E E BSH,WEST W 
-W W W D D D D D D D D D D D D D D D D W W W 
-W W W W W W W W W W W W W W W W W W W W W W 
+V2.0 16 15
+PVS_Easy_01.pmvsl
+W W W W W W W W W W W W W W W W 
+W W W D D D D D D D D D D W W W 
+W E W D W D W W W W D W D W BSH,WEST W 
+W E E D W D W W W W D W D E E W 
+W W W D W D W W W W D W D W W W 
+W W W D D D D D D D D D D W W W 
+W W W D W D W D D W D W D W W W 
+W E E D W D D D D D D W D E BSH,WEST W 
+W W W D W D W D D W D W D W W W 
+W W W D D D D D D D D D D W W W 
+W W W D W D W W W W D W D W W W 
+W E E D W D W W W W D W D E E W 
+W E W D W D W W W W D W D W BST,WEST W 
+W W W D D D D D D D D D D W W W 
+W W W W W W W W W W W W W W W W 

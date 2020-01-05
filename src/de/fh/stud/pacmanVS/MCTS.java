@@ -120,7 +120,10 @@ public class MCTS extends Thread {
 		}
 		//System.out.println("MCTS THREAD: bestactionsofar Updated");
 		BestActionSoFar=root.Children[index].action;
-		//System.out.println("Bisher bester Zug: "+BestActionSoFar+" (iterationen: "+iterationCounterSinceRootChange+")");
+		if(constants.DEBUG_BESTACTION) {
+			System.out.println("Bisher bester Zug: "+BestActionSoFar+" (iterationen: "+iterationCounterSinceRootChange+")");			
+		}
+
 		
 		// Tausche die Wurzel des Baums aus falls der Main Thread das angeordnet hat
 //System.out.println("end iteration");
@@ -194,17 +197,28 @@ public class MCTS extends Thread {
 	
 	public Node[] SelectionAndExpansion(){
 		Node Selected=root;
+		if(constants.DEBUG_SELECTION) {
+			System.out.print("Beginne SelectionAndExpansion bei Wurzel des Baums: ");
+			root.Weltzustand.print();
+		}
 		while(true){
 			if(Selected.Children==null){  // Knoten ist ein Blattknoten bei dem noch nie verssucht wurde zu expandierene
 				Selected.expand();		// -> expandiere Blattknoten
 				if(Selected.Children.length==0){ // knoten ist immer noch ein Blattknoten weil expansion keine Knoten erzeugen konnte
+					if(constants.DEBUG_SELECTION) {
+						System.out.print("keine Kindknoten vorhanden: Return Knoten -> ");
+						Selected.Weltzustand.print();
+					}
 					Node[] result = {Selected};
 					return result;
 				}
-				if(Selected.Children[0]!=null){	
+				if(Selected.Children[0]!=null){
+					if(constants.DEBUG_SELECTION) {
+						System.out.println("Es wurden "+Selected.Children.length+" neue Blattknoten erzeugt und zurückgegeben mit runde="+Selected.Children[0].Weltzustand.round+"_"+Selected.Children[0].Weltzustand.amZug);
+					}
 					return Selected.Children;	
 				}else{							
-					System.err.println("SelectionAndExpansion hat festegestellt das der ausgewähöte kindknoten null ist das sollte eigentlich nicht passieren");
+					System.err.println("SelectionAndExpansion hat festegestellt das der ausgewählte kindknoten null ist das sollte eigentlich nicht passieren");
 					Node[] result = {Selected};
 					return result;				
 				}
@@ -241,6 +255,9 @@ public class MCTS extends Thread {
 						System.out.println("waehle kindknoten nummer "+index+" mit UCB1 Score="+MaxUCB1score);
 					}
 					Selected=Selected.Children[index];
+					if(constants.DEBUG_SELECTION) {
+						System.out.println("Selection: KindKnoten nummer "+index+" mit UCB1 Score="+MaxUCB1score+" (aktion ="+Selected.action+")"+"runde="+Selected.Weltzustand.round+"_"+Selected.Weltzustand.amZug);
+					}
 				}
 			}
 		}

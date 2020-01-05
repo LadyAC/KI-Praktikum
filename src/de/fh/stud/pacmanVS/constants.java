@@ -7,7 +7,8 @@ public class constants {
 	public static boolean DEBUG_ROOT=true;
 	public static boolean DEBUG_THREADSYNC=false;
 	public static boolean DEBUG_ACTION=false;
-	
+	public static boolean DEBUG_SELECTION=false;
+	public static boolean DEBUG_BESTACTION=true;
 	
 	
 	

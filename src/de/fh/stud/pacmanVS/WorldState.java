@@ -105,6 +105,14 @@ public class WorldState {
 	
 	public ArrayList<WorldState> expand_AllDirectionsAndWait() {
 		if(amZug==5 && round == 400 || DotsOnEachSide==enemyTeamDotsSecured || DotsOnEachSide==ourTeamDotsSecured) {
+			
+			System.err.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! "
+					+ "amZug="+amZug
+					+" round="+round
+					+" DotsOnEachSide="+DotsOnEachSide
+					+" enemyTeamDotsSecured="+enemyTeamDotsSecured
+					+" ourTeamDotsSecured="+ourTeamDotsSecured);
+			
 			return new ArrayList<WorldState>(0);
 		}
 		
@@ -228,6 +236,10 @@ public class WorldState {
 		return (round==400&&amZug==5);
 	}
 	
+	private boolean isVictoryBySecuredDots(){
+		return (DotsOnEachSide==enemyTeamDotsSecured || DotsOnEachSide==ourTeamDotsSecured);
+	}
+	
 	public void print() {
 		String zustand="runde: "+round+"_"+amZug+"";
 		for(int i=0;i<PacPos.length;i++) {
@@ -257,6 +269,9 @@ public class WorldState {
 			System.err.println("Simulation gestarted für folgende runde: "+this.round+"_"+this.amZug);
 			print();
 		}
+		
+		
+	
 //		System.out.println("Simulationstart: "+round+"_"+amZug);
 		
 		
@@ -275,7 +290,7 @@ public class WorldState {
 			
 		
 			if(System.nanoTime()-sTime > 500000000) {
-				System.err.println("Playout Simulation abgebrochen wegen zeitübersschreitung dauerte länger als 0,5 Sekunden");
+				System.err.println("Playout Simulation abgebrochen wegen zeitüberschreitung (>0.5s)");
 				return 0;
 			}
 			
@@ -293,6 +308,12 @@ public class WorldState {
 							bestScore=kandidaten.get(i).getScore();
 				}
 				return bestScore;
+			}
+			
+			for(int i=0;i<kandidaten.size();i++) {
+				if(kandidaten.get(i).isVictoryBySecuredDots()) {
+					return kandidaten.get(i).getScore();
+				}
 			}
 			//TODO simulationstiefe abfragen und eventuell simulation abbrechen		MaxSimTiefe==SimTiefe
 			
