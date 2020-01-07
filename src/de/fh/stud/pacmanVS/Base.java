@@ -86,8 +86,7 @@ public class Base {
 			for(int i = 0; i<ownSpwans.size();i++)
 				WorldState.spawnPosition[index++]=Base.Vector2ToInt(ownSpwans.get(i));
 			for(int i = 0; i<otherspawns.size();i++)
-				WorldState.spawnPosition[index++]=Base.Vector2ToInt(ownSpwans.get(i));
-			
+				WorldState.spawnPosition[index++]=Base.Vector2ToInt(otherspawns.get(i));
 			//TODO Sven Ende
 			
 			worldBaseCreated=true;

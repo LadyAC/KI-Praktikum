@@ -48,7 +48,7 @@ public class MCTS extends Thread {
 	
 	
 	public void run(){
-		System.out.println("MCTS Thread gestarted Phase:"+this.phaser.getPhase());
+		System.out.println("MCTS Thread gestarted Phase:"+phaser.getPhase());
 		doIteration();
 		if(constants.DEBUG_ROOT) {
 			System.out.print("Wurzel: ");
@@ -69,9 +69,9 @@ public class MCTS extends Thread {
 				System.out.println(TreeTraversel());
 			}
 			iterationCounterSinceRootChange++;
-			if(RoundActionUsed!=lastRoundActionNumber){
-//				System.out.println("MCTS Thread hat festgestellt das der Main Thread den austausch der Wurzel angeordnet hat");
+			if(RoundActionUsed!=lastRoundActionNumber){		
 				if(constants.DEBUG_ROOT) {
+					System.out.println("MCTS Thread hat festgestellt das der Main Thread den austausch der Wurzel angeordnet hat");
 					System.out.println("Iterationen seit Wurzeltausch: "+iterationCounterSinceRootChange);
 				}
 				ChangeRoot(this.NewRoot);

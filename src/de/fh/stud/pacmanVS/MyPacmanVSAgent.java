@@ -25,6 +25,21 @@ public class MyPacmanVSAgent extends VSPacmanAgent {
 	public MyPacmanVSAgent(String name) {
 		super(name);
 	}
+	
+	public static void printPercept(VSPacmanPercept percept) {
+		System.out.println("pacman positionen laut percept");
+		System.out.print("Eigene Pacman: ");
+		System.out.print(percept.getPosition()+"\t");
+		System.out.print(percept.getTeammates().get(0)+"\t");
+		System.out.println(percept.getTeammates().get(1)+"\t");
+		System.out.print("Gegner Pacman: ");
+		System.out.print(percept.getOpponents().get(0)+"\t");
+		System.out.print(percept.getOpponents().get(1)+"\t");
+		System.out.println(percept.getOpponents().get(2)+"\t");
+		System.out.println("AmZug: "+percept.getPosition());		
+	}
+	
+	
 
 	@Override
 	public void updateState(VSPacmanPercept percept, VSPacmanActionEffect actionEffect) {
@@ -47,13 +62,7 @@ public class MyPacmanVSAgent extends VSPacmanAgent {
 			Base.createWorldBase(percept.getTotalLevel(), startInfo);
 			WorldState w = new WorldState(percept);
 			if(constants.DEBUG_PERCEPTS) {
-				System.out.println("Percept von server erhalten :");
-				System.out.print(Base.Vector2ToInt(percept.getPosition())+" ("+percept.getPosition()+") \n");
-				System.out.print(Base.Vector2ToInt(percept.getTeammates().get(0))+" ("+percept.getTeammates().get(0)+")  ");
-				System.out.print(Base.Vector2ToInt(percept.getTeammates().get(1))+" ("+percept.getTeammates().get(1)+")  ");
-				System.out.print(Base.Vector2ToInt(percept.getOpponents().get(0))+" ("+percept.getOpponents().get(0)+")  ");
-				System.out.print(Base.Vector2ToInt(percept.getOpponents().get(1))+" ("+percept.getOpponents().get(1)+")  ");
-				System.out.println(Base.Vector2ToInt(percept.getOpponents().get(2))+" ("+percept.getOpponents().get(2)+")  ");
+				printPercept(percept);
 			}
 
 			SearchTree=new MCTS(w);
@@ -61,12 +70,7 @@ public class MyPacmanVSAgent extends VSPacmanAgent {
 		}else{			
 			if(constants.DEBUG_PERCEPTS) {
 				System.out.println("Percept von server erhalten :");
-				System.out.print(Base.Vector2ToInt(percept.getPosition())+" ("+percept.getPosition()+")  \n");
-				System.out.print(Base.Vector2ToInt(percept.getTeammates().get(0))+" ("+percept.getTeammates().get(0)+")  ");
-				System.out.print(Base.Vector2ToInt(percept.getTeammates().get(1))+" ("+percept.getTeammates().get(1)+")  ");
-				System.out.print(Base.Vector2ToInt(percept.getOpponents().get(0))+" ("+percept.getOpponents().get(0)+")  ");
-				System.out.print(Base.Vector2ToInt(percept.getOpponents().get(1))+" ("+percept.getOpponents().get(1)+")  ");
-				System.out.println(Base.Vector2ToInt(percept.getOpponents().get(2))+" ("+percept.getOpponents().get(2)+")  ");
+				printPercept(percept);
 			}
 
 			while(true){
@@ -141,12 +145,7 @@ public class MyPacmanVSAgent extends VSPacmanAgent {
 					}else {// Debug Ausgaben
 						System.out.println("FEHLER!!!!  die aktuelle Situation wurde vom Suchbaum nicht vorhergesehen ");
 						System.out.println("pacman positionen laut percept");
-						System.out.print(Base.Vector2ToInt(percept.getPosition())+"\t");
-						System.out.print(Base.Vector2ToInt(percept.getTeammates().get(0))+"\t");
-						System.out.println(Base.Vector2ToInt(percept.getTeammates().get(1))+"\t");
-						System.out.print(Base.Vector2ToInt(percept.getOpponents().get(0))+"\t");
-						System.out.print(Base.Vector2ToInt(percept.getOpponents().get(1))+"\t");
-						System.out.println(Base.Vector2ToInt(percept.getOpponents().get(2))+"\t");
+						printPercept(percept);
 					}					
 					
 					SearchTree.lastRoundActionNumber++;
@@ -198,7 +197,8 @@ public class MyPacmanVSAgent extends VSPacmanAgent {
 
 	@Override
 	public VSPacmanAction action() {
-		while(System.nanoTime()-StartTimeUpdateState < 5000000000L){	// gebe Suchbaum MINDESTENS 0,5 Sekunden Zeit für das auswählen eines zuges
+		double seconds = 1.5;
+		while(System.nanoTime()-StartTimeUpdateState < seconds*1000000000){	// gebe Suchbaum MINDESTENS 0,5 Sekunden Zeit für das auswählen eines zuges
 			try {
 				Thread.currentThread().sleep(200);	
 			} catch (InterruptedException e) {
