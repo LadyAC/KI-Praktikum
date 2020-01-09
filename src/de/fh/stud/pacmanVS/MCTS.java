@@ -17,7 +17,7 @@ public class MCTS extends Thread {
 	
 	public Playout playWait,playGoNorth,playGoSouth,playGoWest,playGoEast;
 //	private Phaser phaserWait,phaserGoNorth,phaserGoSouth,phaserGoEast,phaserGoWest;
-	public volatile int WaitScore,GoNorthScore,GoSouthScore,GoWestScore,GoEastScore;// hier schreiben die Threads die die Spiele Simulieren ihre Ergebnisse rein
+	public volatile double WaitScore,GoNorthScore,GoSouthScore,GoWestScore,GoEastScore;// hier schreiben die Threads die die Spiele Simulieren ihre Ergebnisse rein
 	// TODO: BestActionSoFar wert zuweisen nach BackPropagation
 	public volatile Phaser phaser;
 	private int iterationCounterSinceRootChange=0;
@@ -70,9 +70,8 @@ public class MCTS extends Thread {
 			}
 			iterationCounterSinceRootChange++;
 			if(RoundActionUsed!=lastRoundActionNumber){		
-				if(constants.DEBUG_ROOT) {
-					System.out.println("MCTS Thread hat festgestellt das der Main Thread den austausch der Wurzel angeordnet hat");
-					System.out.println("Iterationen seit Wurzeltausch: "+iterationCounterSinceRootChange);
+				if(constants.DEBUG_ITERATIONCOUNTER) {
+					System.out.println("Iterationen seit Wurzeltausch: "+iterationCounterSinceRootChange+"\t Der Baum hat aktuell "+TreeTraverselCount()+" Knoten");
 				}
 				ChangeRoot(this.NewRoot);
 				iterationCounterSinceRootChange=0;
@@ -111,7 +110,7 @@ public class MCTS extends Thread {
 			Selected[i].BackPropagation(); 
 //System.out.println("#3 Backproagation done");
 		// ermittle besten Zug nach aktuellen stand
-		double bestScore=Double.MIN_VALUE,tmpScore;
+		double bestScore=-Double.MAX_VALUE,tmpScore;
 		int index=0;
 		for(int i=0;i<root.Children.length;i++){
 			Node n=root.Children[i];
@@ -278,9 +277,7 @@ public class MCTS extends Thread {
 			}
 		if(!found)
 			System.out.println("!!!!!!!!!!!!!!Mit der neuen Wurzel des Baums stimmt was nicht!!!!");
-		if(constants.DEBUG_ROOT) {
-			System.out.println("MCTS Thread: tausche Wurzel aus");
-		}
+
 		
 		//System.out.print("neue Wurzel: ");
 		//newRoot.Weltzustand.print();
@@ -300,6 +297,10 @@ public class MCTS extends Thread {
 		return treeStringbuilder.toString();
 	}
 	
+	public int TreeTraverselCount(){
+		return TreeTraverselCount(root);
+	}
+	
 	private void TreeTraversel(Node n,StringBuilder treeStringbuilder){
 		treeStringbuilder.append(n.NodeToString());
 		treeStringbuilder.append("\n");
@@ -308,8 +309,15 @@ public class MCTS extends Thread {
 				TreeTraversel(n.Children[i],treeStringbuilder);
 			}		
 		}
-
 	}
-	
+	private int TreeTraverselCount(Node n){
+		int counter=1;
+		if(n.Children!=null) {
+			for(int i=0;i<n.Children.length;i++) {
+				counter+=TreeTraverselCount(n.Children[i]);
+			}		
+		}
+		return counter;
+	}
 	
 }

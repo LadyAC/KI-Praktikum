@@ -1,13 +1,13 @@
 V2.0 16 11
-PVS_Medium_01.pmvsl
+PVS_Medium_02.pmvsl
 W W W W W W W W W W W W W W W W 
-W W D D D D D D D D D D D D W W 
-W E D W D W D D D D W D W D BSH,WEST W 
-W W D D D W D D D D W D D D W W 
-W W D W D W D D D D W D W D W W 
-W E D W D D D D D D D D W D BSD,WEST W 
-W W D W D W D D D D W D W D W W 
-W W D D D W D D D D W D D D W W 
-W E D W D W D D D D W D W D BSH,WEST W 
-W W D D D D D D D D D D D D W W 
+W E E D D D D D D D D D D E E W 
+W E W D D D D D D D D D D W VAL,WEST W 
+W W W D D D D D D D D D D W W W 
+W W W W D D D D D D D D W W W W 
+W E E E D D D D D D D D E E VAL,WEST W 
+W W W W D D D D D D D D W W W W 
+W W W D D D D D D D D D D W W W 
+W E W D D D D D D D D D D W VAL,WEST W 
+W E E D D D D D D D D D D E E W 
 W W W W W W W W W W W W W W W W 

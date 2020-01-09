@@ -10,8 +10,10 @@ import de.fh.pacmanVS.VSPacmanPercept;
 import de.fh.pacmanVS.enums.VSPacmanAction;
 import de.fh.pacmanVS.enums.VSPacmanActionEffect;
 import de.fh.util.Vector2;
+import static de.fh.stud.pacmanVS.constants.*;
 
 public class MyPacmanVSAgent extends VSPacmanAgent {
+	double seconds;
 	static boolean firstpercept=true;
 	static int updatestatecounter=0;
 	static MCTS SearchTree;
@@ -45,6 +47,8 @@ public class MyPacmanVSAgent extends VSPacmanAgent {
 	public void updateState(VSPacmanPercept percept, VSPacmanActionEffect actionEffect) {
 		StartTimeUpdateState=System.nanoTime();
 		if(firstpercept){
+			seconds = 1.8;
+			Node.Xsize=percept.getTotalLevel().length;
 			System.out.println("Erstes Percept erhalten");
 			firstpercept=false;
 			MainThread=Thread.currentThread();
@@ -67,7 +71,8 @@ public class MyPacmanVSAgent extends VSPacmanAgent {
 
 			SearchTree=new MCTS(w);
 			SearchTree.start();
-		}else{			
+		}else{	
+			seconds = 1.2;
 			if(constants.DEBUG_PERCEPTS) {
 				System.out.println("Percept von server erhalten :");
 				printPercept(percept);
@@ -128,6 +133,19 @@ public class MyPacmanVSAgent extends VSPacmanAgent {
 						}
 						if(totalFound==6) {
 							newRoot=ChildNodes[i];
+							for(int i2=0;i2<percept.getRemainingOwnDots().size();i2++) {
+								if((newRoot.Weltzustand.world[Base.Vector2ToInt(percept.getRemainingOwnDots().get(i2))*2]&B14)==0){
+									System.err.println("Dot position "+percept.getRemainingOwnDots().get(i2)+" fehlt im weltbild");
+								}
+							}
+							for(int i2=0;i2<percept.getRemainingOpponentDots().size();i2++) {
+								if((newRoot.Weltzustand.world[Base.Vector2ToInt(percept.getRemainingOpponentDots().get(i2))*2]&B14)==0){
+									System.err.println("Dot and position "+percept.getRemainingOpponentDots().get(i2)+" fehlt im weltbild");
+								}
+							}
+							
+							
+							
 							break;
 						}else {
 //							System.out.println("Childnode "+i+" totalmacht "+totalFound+" / 6");
@@ -197,7 +215,7 @@ public class MyPacmanVSAgent extends VSPacmanAgent {
 
 	@Override
 	public VSPacmanAction action() {
-		double seconds = 1.5;
+		;
 		while(System.nanoTime()-StartTimeUpdateState < seconds*1000000000){	// gebe Suchbaum MINDESTENS 0,5 Sekunden Zeit für das auswählen eines zuges
 			try {
 				Thread.currentThread().sleep(200);	
