@@ -119,10 +119,10 @@ public class TestMain {
 
 		PacPos[0]=16;
 		PacPos[1]=102;	// eigener Pacman 2
-		PacPos[2]=187;	// eigener pacman 3
-		PacPos[3]=8;	// gegner  Pacman 1
-		PacPos[4]=52;	// gegner  Pacman 2
-		PacPos[5]=199;   // gegner  Pacman 3
+		PacPos[2]=186;	// eigener pacman 3
+		PacPos[3]=27;	// gegner  Pacman 1
+		PacPos[4]=111;	// gegner  Pacman 2
+		PacPos[5]=195;   // gegner  Pacman 3
 		
 		int[] zug = {0,3,1,4,1,5};
 		WorldState.zugreihenfolge=zug;
@@ -133,40 +133,40 @@ public class TestMain {
 		for(int i=0;i<childNodes.size();i++) {
 			childNodes.get(i).print();
 		}
-	/*	
+		
 		int[] shortestDistance=null;
 		
 		System.out.println("Kürzester weg zu jedem feld (OHNE berücksichtigung das sich geister in den Weg stellen");
-		shortestDistance= Base.BreitensucheOhneGegnerHindernis(PacPos);
+		shortestDistance= Base.BreitensucheOhneGegnerHindernis(PacPos,Base.WorldBaseBig.clone());
 		Base.DrawDistanceInfo(map, shortestDistance);
 		
 		System.out.println("\n\nKürzester weg zu jedem feld (MIT berücksichtigung das sich geister in den Weg stellen");
-		shortestDistance= Base.BreitensucheMitGegnerHindernis(PacPos);
+		shortestDistance= Base.BreitensucheMitGegnerHindernis(PacPos,Base.WorldBaseBig.clone());
 		Base.DrawDistanceInfo(map, shortestDistance);
 		
-		System.out.println("\n\nstarte Benchmark für BreitensucheMitGegnerHindernis Methode (100 sekunden dauer)");
-		for(int i=0;i<10;i++) {
-			long start=System.nanoTime();
-			int counter=0;
-			while((System.nanoTime()-start) < 10000000000L) {
-				Base.BreitensucheMitGegnerHindernis(PacPos);
-				counter++;
-			}
-			System.out.println((counter/10)+" durchschnittliche Methoden-aufrufe pro sekunde in den letzten 10 sekunden");
-		}	
+//		System.out.println("\n\nstarte Benchmark für BreitensucheMitGegnerHindernis Methode (100 sekunden dauer)");
+//		for(int i=0;i<10;i++) {
+//			long start=System.nanoTime();
+//			int counter=0;
+//			while((System.nanoTime()-start) < 10000000000L) {
+//				Base.BreitensucheMitGegnerHindernis(PacPos,Base.WorldBaseBig);
+//				counter++;
+//			}
+//			System.out.println((counter/10)+" durchschnittliche Methoden-aufrufe pro sekunde in den letzten 10 sekunden");
+//		}	
+//
+//		System.out.println("starte Benchmark für BreitensucheOhneGegnerHindernis Methode (100 sekunden dauer)");
+//		
+//		for(int i=0;i<10;i++) {
+//			long start=System.nanoTime();
+//			int counter=0;
+//			while((System.nanoTime()-start) < 10000000000L) {
+//				Base.BreitensucheOhneGegnerHindernis(PacPos,Base.WorldBaseBig);
+//				counter++;
+//			}
+//			System.out.println((counter/10)+" durchschnittliche Methoden-aufrufe pro sekunde in den letzten 10 sekunden");
+//		}
 
-		System.out.println("starte Benchmark für BreitensucheOhneGegnerHindernis Methode (100 sekunden dauer)");
-		
-		for(int i=0;i<10;i++) {
-			long start=System.nanoTime();
-			int counter=0;
-			while((System.nanoTime()-start) < 10000000000L) {
-				Base.BreitensucheOhneGegnerHindernis(PacPos);
-				counter++;
-			}
-			System.out.println((counter/10)+" durchschnittliche Methoden-aufrufe pro sekunde in den letzten 10 sekunden");
-		}
-*/
 		
 		
 		

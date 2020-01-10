@@ -12,12 +12,12 @@ import de.fh.util.Vector2;
 import static de.fh.pacmanVS.enums.VSPacmanAction.*;
 import static de.fh.stud.pacmanVS.constants.*;
 public class WorldState {
+	public static int[] OwnBorderFields; // initialisiert durch Base.createWorldBase
 	public static int[] zugreihenfolge=new int[6];
 	public static int[] spawnPosition=new int[6];
-	
 	public static int DotsOnEachSide=-42; //TODO: wert am anfang des Spiels setzen		// anzahl der Dots die ein Team beim spielstart besitzt
 	// (zur prüfung ob ein spiel gewonnen wurde beim Rollout)
-	public static int RolloutDepth=17;	// maximale tiefe eine RolloutSimulation
+	public static int RolloutDepth=25;	// maximale tiefe eine RolloutSimulation
 //	public static int NumberOfPacmans; 	// anzahl der pacmans im spiel ( =2 bei 1vs1 =6 bei 3vs3 )
 //	public static Random rn=new Random();
 	public VSPacmanAction action;		// aktion mit dem dieser Zustand erreicht wurde
@@ -38,6 +38,7 @@ public class WorldState {
 	int amZug; // id die auf das statische zugereihenfolge array verweist  
 	int ourTeamDotsSecured;
 	int enemyTeamDotsSecured;
+	private double tempScore=Double.NEGATIVE_INFINITY;
 	//public int bewertung;
 	
 //	public int PacmanamZug() {
@@ -223,23 +224,64 @@ public class WorldState {
 		return neu;
 	}
 	
-	private double getScore() {
-//		double Score= ((((double)ourTeamDotsSecured-enemyTeamDotsSecured)/2)/DotsOnEachSide);
-//		if(ourTeamDotsSecured>enemyTeamDotsSecured) {
-//			return Score+1;
-//		}
-//		if(ourTeamDotsSecured<enemyTeamDotsSecured) {
-//			return Score-1;
-//		}
-//		return Score;
+	
+	public double calculateScoreImproved() {
+		final int PointsPerDot=10000;
+		final double EatenAndSafeWayRatio=0.8;
+		final double EatenAndUnsafeWayRatio=0.3;
+		double Score=PointsPerDot*(ourTeamDotsSecured-enemyTeamDotsSecured);
+		//int[] distanceWorld=world.clone();
+		int[] distanceSecureWorld=world.clone();
+		Base.BreitensucheMitGegnerHindernis(PacPos,distanceSecureWorld);
+		//Base.BreitensucheOhneGegnerHindernis(PacPos,distanceWorld);
+		int ds,iInc;
+		for(int i=0;i<6;i++) {
+			iInc=(i<2)?0:1;
+			
+			ds=((i+2)<<3)&0B11000;
+			if(i<3 && (distanceSecureWorld[PacPos[i]]&B13)==0 || i>=3 && (distanceSecureWorld[PacPos[i]]&B13)!=0) { // pacman befindet sich auf gegner Feld
+				int distance;
+				int minDistance=Integer.MAX_VALUE;
+				for(int i2=0;i2<OwnBorderFields.length;i2++) {
+					distance=(((distanceSecureWorld[OwnBorderFields[i2]+iInc])>>ds)&E6);
+					if(distance>0 && distance<minDistance) {
+						minDistance=distance;
+					}
+				}
+				if(minDistance<Integer.MAX_VALUE) {
+					// PACMAN kann nach hause laufen mit "distance" schritten... 
+					if(minDistance<400-round) {//..und kann diesen weg in den verbliebenen runden auch ausführen
+						if(i<3) 
+							Score+=carriedDots[i].length*EatenAndSafeWayRatio*PointsPerDot;
+						else
+							Score-=carriedDots[i].length*EatenAndSafeWayRatio*PointsPerDot;					
+					}
+				}else{
+					// PACMAN hat keinen garantierten weg nach hause
+					if(i<3)
+						Score+=carriedDots[i].length*EatenAndUnsafeWayRatio*PointsPerDot;
+					else
+						Score-=carriedDots[i].length*EatenAndUnsafeWayRatio*PointsPerDot;
+				}
+				
+				
+				
+			}			
+		}
 		
-		if(ourTeamDotsSecured>enemyTeamDotsSecured) {
-			return 1;
+		//System.out.println("calculated Score= " +Score/PointsPerDot+"   \tursprünglich="+(ourTeamDotsSecured-enemyTeamDotsSecured));
+		if(this.ourTeamDotsSecured>this.enemyTeamDotsSecured) {
+			return (Score/PointsPerDot)+2;
 		}
-		if(ourTeamDotsSecured<enemyTeamDotsSecured) {
-			return -1;
+		if(this.ourTeamDotsSecured<this.enemyTeamDotsSecured) {
+			return (Score/PointsPerDot)-2;
 		}
-		return 0;
+		return Score/PointsPerDot;
+	}
+	
+	private double getScore() {
+	//	return (tempScore==Double.NEGATIVE_INFINITY)?tempScore=calculateScoreImproved():tempScore;
+		return ourTeamDotsSecured-enemyTeamDotsSecured;
 	}
 	
 	private boolean isLastMove() {
@@ -257,7 +299,7 @@ public class WorldState {
 	public void print() {
 		String zustand="runde: "+round+"_"+amZug+"";
 		for(int i=0;i<PacPos.length;i++) {
-			zustand+=" "+Vector2Compact(Base.IntToVector2(PacPos[i]))+((constants.DEBUG_NODEREPAWNDATA)?(" respawn:"+Base.IntToVector2(spawnPosition[i])):(""))+"["+carriedDots[i].length+"]";//PacPos[i]+
+			zustand+=" "+Vector2Compact(Base.IntToVector2(PacPos[i]))+((constants.DEBUG_NODE_REPAWN_DATA)?(" respawn:"+Base.IntToVector2(spawnPosition[i])):(""))+"["+carriedDots[i].length+"]";//PacPos[i]+
 		}
 		zustand+="(AmZug-> "+Vector2Compact(Base.IntToVector2(PacPos[zugreihenfolge[amZug]]))+") ";
 		zustand+=" Secured: "+ourTeamDotsSecured+"/"+enemyTeamDotsSecured+" ";
@@ -290,9 +332,10 @@ public class WorldState {
 				System.err.println("Playout Simulation abgebrochen wegen zeitüberschreitung (>0.5s)");
 				return 0;// die simulation wird dan einfach mit unentschieden beendet in der hoffnung das der bug nicht erneut auftritt
 			}
-			bestScore=tmp.getScore();
+			
 			// schritt 2 prüfe ob das simulationsende durch rundenzahl oder erreicht ist falls ja -> return best score
 			if(tmp.isLastMove()||SimTiefe==MaxSimTiefe){	
+				bestScore=tmp.getScore();
 				if(maximize){ // letzter schritt wurde von unserem pacman gemacht (score maximieren)
 					for(int i=1;i<kandidaten.size();i++)
 						if(kandidaten.get(i).getScore()>bestScore)

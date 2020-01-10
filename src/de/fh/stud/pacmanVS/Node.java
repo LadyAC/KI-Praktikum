@@ -1,5 +1,6 @@
 package de.fh.stud.pacmanVS;
-import static de.fh.pacmanVS.enums.VSPacmanAction.WAIT;
+import static de.fh.pacmanVS.enums.VSPacmanAction.*;
+import static de.fh.stud.pacmanVS.constants.*;
 
 import java.lang.Math;
 import java.util.ArrayList;
@@ -15,7 +16,7 @@ public class Node {
 	WorldState Weltzustand;
 	VSPacmanAction action;		// aktion mit dem dieser Zustand erreicht wurde
 	int simulationCount=0;		// anzahl all aller spielsimulationen von diesem Knoten und aller Kind Knoten
-	int totalScore=0;				// gesammt score aller gespielten Simulationen von diesem knoten und aller kind knoten (optional: + heuristische bewertung dieses Knoten)
+	double totalScore=0;				// gesammt score aller gespielten Simulationen von diesem knoten und aller kind knoten (optional: + heuristische bewertung dieses Knoten)
 	
 	double ownScore=0;				// nur für debugging
 	final int id;						// nur für debugging
@@ -69,10 +70,19 @@ public class Node {
 	
 	
 	public double getUCB1() {
-		double Score= (simulationCount==0)? Double.MAX_VALUE : ((double)totalScore)/simulationCount+3*Math.sqrt(Math.log(tree.root.simulationCount)/simulationCount);
+		double Score= (simulationCount==0)? Double.MAX_VALUE : ((double)totalScore)/simulationCount+2*Math.sqrt(2*Math.log(tree.root.simulationCount)/simulationCount);
 		if(constants.DEBUG_UCB1) System.out.println("UCB1= "+Score+"    NodeCount="+simulationCount+" TreeCount="+tree.root.simulationCount+" totalScore="+totalScore);
 
-		if(Weltzustand.action==WAIT) { 
+		if(Weltzustand.action==WAIT) {
+			if(WorldState.zugreihenfolge[Weltzustand.amZug]<3) {
+				if((Weltzustand.world[Weltzustand.PacPos[WorldState.zugreihenfolge[Weltzustand.amZug]]]&B13)==0) {
+					return Score-=4;
+				}
+			}else {
+				if((Weltzustand.world[Weltzustand.PacPos[WorldState.zugreihenfolge[Weltzustand.amZug]]]&B13)!=0) {
+					return Score-=4;
+				}
+			}
 			// Knoten bei denen ein Wait ausgeführt wurde von einem Pacman der nicht an der genze steht bekommen einen schlechteren UCB1 Score damit
 			// für diese aktionen keine tiefen äste gebildset werden
 			int prevZug=Weltzustand.amZug-1;
@@ -80,7 +90,8 @@ public class Node {
 				prevZug=5;
 			if(Math.abs(Base.IntToVector2(Weltzustand.PacPos[WorldState.zugreihenfolge[prevZug]]).getX()-(Xsize/2))>3) {
 				if(Score>0) {
-					Score/=5;
+					//System.err.println("Score reduced");
+					Score-=4;
 				}
 			}			
 		}

@@ -27,6 +27,7 @@ public class Playout extends Thread{
 			phase++;
 			running=true;
 			double score=toSimulate.SimulateGame();
+			//System.out.println("calculated Score: "+score);
 			switch(id){
 			case 0: tree.WaitScore=score;  		break;
 			case 1: tree.GoWestScore=score;		break;

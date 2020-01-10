@@ -18,7 +18,6 @@ public class MCTS extends Thread {
 	public Playout playWait,playGoNorth,playGoSouth,playGoWest,playGoEast;
 //	private Phaser phaserWait,phaserGoNorth,phaserGoSouth,phaserGoEast,phaserGoWest;
 	public volatile double WaitScore,GoNorthScore,GoSouthScore,GoWestScore,GoEastScore;// hier schreiben die Threads die die Spiele Simulieren ihre Ergebnisse rein
-	// TODO: BestActionSoFar wert zuweisen nach BackPropagation
 	public volatile Phaser phaser;
 	private int iterationCounterSinceRootChange=0;
 
@@ -110,19 +109,19 @@ public class MCTS extends Thread {
 			Selected[i].BackPropagation(); 
 //System.out.println("#3 Backproagation done");
 		// ermittle besten Zug nach aktuellen stand
-		double bestScore=-Double.MAX_VALUE,tmpScore;
+		double bestScore=Double.NEGATIVE_INFINITY,tmpScore;
 		int index=0;
 		for(int i=0;i<root.Children.length;i++){
 			Node n=root.Children[i];
-			tmpScore=((double)n.totalScore)/n.simulationCount;
+			tmpScore=n.simulationCount;//=((double)n.totalScore)/n.simulationCount;
 			if(bestScore<tmpScore) {
 				bestScore=tmpScore;
 				index=i;
 			}
 		}
 		//System.out.println("MCTS THREAD: bestactionsofar Updated");
-		if(constants.DEBUG_BESTACTION){
-			if(BestActionSoFar!=root.Children[index].action || iterationCounterSinceRootChange%1000==0) {
+		if(constants.DEBUG_BEST_ACTION){
+			if(BestActionSoFar!=root.Children[index].action || iterationCounterSinceRootChange%5000==0) {
 				System.out.println("Bisher bester Zug: "+BestActionSoFar+" (iterationen: "+iterationCounterSinceRootChange+")");
 			}
 		}

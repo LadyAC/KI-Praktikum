@@ -13,6 +13,7 @@ import de.fh.util.Vector2;
 import static de.fh.stud.pacmanVS.constants.*;
 
 public class MyPacmanVSAgent extends VSPacmanAgent {
+	public String name;
 	double seconds;
 	static boolean firstpercept=true;
 	static int updatestatecounter=0;
@@ -26,6 +27,7 @@ public class MyPacmanVSAgent extends VSPacmanAgent {
 
 	public MyPacmanVSAgent(String name) {
 		super(name);
+		this.name=name;
 	}
 	
 	public static void printPercept(VSPacmanPercept percept) {
@@ -72,7 +74,7 @@ public class MyPacmanVSAgent extends VSPacmanAgent {
 			SearchTree=new MCTS(w);
 			SearchTree.start();
 		}else{	
-			seconds = 1.2;
+			seconds = 2;
 			if(constants.DEBUG_PERCEPTS) {
 				System.out.println("Percept von server erhalten :");
 				printPercept(percept);
@@ -229,7 +231,8 @@ public class MyPacmanVSAgent extends VSPacmanAgent {
 				SearchTree.NewRoot=SearchTree.root.Children[i];
 				SearchTree.lastRoundActionNumber++;
 				if(constants.DEBUG_ACTION) {
-					System.out.println("Wir haben aktion "+SelectedAction+" gewählt");
+					//this.
+					System.out.println(name+" setzt \t"+SelectedAction+" ein");
 				}
 				while(SearchTree.lastRoundActionNumber!=SearchTree.RoundActionUsed) {
 					try {

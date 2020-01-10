@@ -91,11 +91,27 @@ public class Base {
 			
 			worldBaseCreated=true;
 		}
+		initBorderFields(world.length,startInfo.getTeam());
 	}
-	
-	public static int[] BreitensucheOhneGegnerHindernis(int[] pac) {
+
+ 	private static void initBorderFields(int xSize,Team t) {
+ 		int borderXValue=(t==Team.BLUE)?(xSize/2)-1:(xSize/2);
+ 		ArrayList<Integer> fields=new ArrayList<Integer>();
+ 		for(int i=0;i<WorldBase.length;i++) {
+ 			if(IntToVector2(i).getX()==borderXValue) {
+ 				fields.add(i*2);
+ 			}
+ 		}
+ 		int[] fieldsArray=new int[fields.size()];
+ 		for(int i=0;i<fields.size();i++) {
+ 			fieldsArray[i]=fields.get(i);
+ 		}
+ 		WorldState.OwnBorderFields=fieldsArray;
+ 	}
+ 	
+	public static int[] BreitensucheOhneGegnerHindernis(int[] pac,int[] world) {
 		int[] oL=new int[WorldBase.length+1];
-		int[] w=WorldBaseBig.clone();
+		int[] w=world;
 		int eI,nI,ds,sh,st,re,wr,cmp,ptmp,exp;
 		for(int i=0;i<pac.length;i++) {
 			wr=1;
@@ -124,8 +140,8 @@ public class Base {
 		return w;
 	}
 
-	public static int[] BreitensucheMitGegnerHindernis(int[] pac) {
-		int[] w=WorldBaseBig.clone();
+	public static int[] BreitensucheMitGegnerHindernis(int[] pac,int[] world) {
+		int[] w=world;
 		int[] cOl=new int[384];
 		int[] nOl=new int[384];
 		int[] w_cOl=new int[12];
@@ -194,14 +210,15 @@ public class Base {
 				w_cOl[i]=0;
 			}
 			todo=0;
-			
 			for(int i=0;i<12;i++)	
 				if((todo+=w_nOl[i])>0) 
 					break;
 			
-			swap=cOl;	cOl=nOl;	 nOl=swap;	// tausche referenzen cOl and nOl
-			swap=w_cOl; w_cOl=w_nOl; w_nOl=swap;// tausche referenzen w_cOl and w_nOl
+			swap=cOl;	cOl=nOl;	 nOl=swap;	// tausche referenzen cOl und nOl
+			swap=w_cOl; w_cOl=w_nOl; w_nOl=swap;// tausche referenzen w_cOl und w_nOl
 		}
+		
+
 		
 //		for(int i=0;i<6;i++)
 //			w[tmp=(pac[i]<<1)+(i<2?0:1)]=(w[tmp]&~(E8<<(ds=(i+2)<<3)))|(1<<(B7<<ds));
@@ -214,6 +231,12 @@ public class Base {
 		w[(pac[5]<<1)+1]=(w[(pac[5]<<1)+1]&0B00000000111111111111111111111111)|0B01000000000000000000000000000000;
 		return w;
 	}
+	
+//	public static int ReadDistanceInfo(int[] world,int iInc,int ds){
+//		int distance=world
+//		return distance;
+//	}
+	
 	
 	public static void DrawDistanceInfo(VSPacmanTileType[][] view,int[] worldAndData) { 
 		int Xsize=view.length*6+1;
