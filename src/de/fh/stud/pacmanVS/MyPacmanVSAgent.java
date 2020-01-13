@@ -52,6 +52,9 @@ public class MyPacmanVSAgent extends VSPacmanAgent {
 			seconds = 1.8;
 			Node.Xsize=percept.getTotalLevel().length;
 			System.out.println("Erstes Percept erhalten");
+			if(constants.DEBUG_PERCEPTS) {
+				printPercept(percept);
+			}
 			firstpercept=false;
 			MainThread=Thread.currentThread();
 			WorldState.DotsOnEachSide = percept.getRemainingOwnDots().size();
@@ -70,11 +73,11 @@ public class MyPacmanVSAgent extends VSPacmanAgent {
 			if(constants.DEBUG_PERCEPTS) {
 				printPercept(percept);
 			}
-
+			System.out.println("Suchbaum thread gestartet nach "+(System.nanoTime()-StartTimeUpdateState)/1000000+" milisekunden");
 			SearchTree=new MCTS(w);
 			SearchTree.start();
 		}else{	
-			seconds = 2;
+			seconds = 1;
 			if(constants.DEBUG_PERCEPTS) {
 				System.out.println("Percept von server erhalten :");
 				printPercept(percept);
@@ -82,9 +85,6 @@ public class MyPacmanVSAgent extends VSPacmanAgent {
 
 			while(true){
 				if(SearchTree.lastRoundActionNumber==SearchTree.RoundActionUsed){
-					if( WorldState.zugreihenfolge[SearchTree.root.Weltzustand.amZug]<3) {
-						
-					}
 					int[] positionOwnTeam=new int[3];
 					int[] positionEnemyTeam=new int[3];
 					positionOwnTeam[0]=Base.Vector2ToInt(percept.getPosition());
@@ -164,7 +164,6 @@ public class MyPacmanVSAgent extends VSPacmanAgent {
 						//System.out.println("Main Thread hat MCTS Thread angewiesen seine Wurzel auszutauschen (wegen neuen percept von server)");
 					}else {// Debug Ausgaben
 						System.out.println("FEHLER!!!!  die aktuelle Situation wurde vom Suchbaum nicht vorhergesehen ");
-						System.out.println("pacman positionen laut percept");
 						printPercept(percept);
 					}					
 					
@@ -217,7 +216,6 @@ public class MyPacmanVSAgent extends VSPacmanAgent {
 
 	@Override
 	public VSPacmanAction action() {
-		;
 		while(System.nanoTime()-StartTimeUpdateState < seconds*1000000000){	// gebe Suchbaum MINDESTENS 0,5 Sekunden Zeit für das auswählen eines zuges
 			try {
 				Thread.currentThread().sleep(200);	
@@ -231,7 +229,6 @@ public class MyPacmanVSAgent extends VSPacmanAgent {
 				SearchTree.NewRoot=SearchTree.root.Children[i];
 				SearchTree.lastRoundActionNumber++;
 				if(constants.DEBUG_ACTION) {
-					//this.
 					System.out.println(name+" setzt \t"+SelectedAction+" ein");
 				}
 				while(SearchTree.lastRoundActionNumber!=SearchTree.RoundActionUsed) {
@@ -266,7 +263,7 @@ public class MyPacmanVSAgent extends VSPacmanAgent {
 			System.err.println("Fehler die gewählte aktion in der action methode hat keinen entsprechenden knoten im baum wurzeltausch nicht möglich");
 		}
 
-		
+		System.out.println("action methode sendet aktion "+SelectedAction+" nach "+((System.nanoTime()-StartTimeUpdateState)/1000000)+" milisekunden");
 		return SelectedAction;
 	}
 

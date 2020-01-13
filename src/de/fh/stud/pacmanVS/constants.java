@@ -1,19 +1,17 @@
 package de.fh.stud.pacmanVS;
 
 public class constants {
-	public static boolean DEBUG_UCB1			=false;
-	public static boolean DEBUG_CHILDNODES		=false;
-	public static boolean DEBUG_NODE_REPAWN_DATA=false;
-	public static boolean DEBUG_PERCEPTS		=false;
-	public static boolean DEBUG_ROOT			=true;
-	public static boolean DEBUG_THREADSYNC		=false;
-	public static boolean DEBUG_ACTION			=false;
-	public static boolean DEBUG_SELECTION		=false;
-	public static boolean DEBUG_BEST_ACTION		=false;
-	public static boolean DEBUG_TREE			=false;
-	public static boolean DEBUG_ITERATIONCOUNTER=true;
-	
-	
+	public static  boolean DEBUG_UCB1					=false;
+	public static final boolean DEBUG_CHILDNODES		=false;
+	public static final boolean DEBUG_NODE_REPAWN_DATA	=false;
+	public static final boolean DEBUG_PERCEPTS			=false;
+	public static final boolean DEBUG_ROOT				=true;
+	public static final boolean DEBUG_THREADSYNC		=false;
+	public static final boolean DEBUG_ACTION			=true;
+	public static final boolean DEBUG_SELECTION			=false;
+	public static final boolean DEBUG_BEST_ACTION		=false;
+	public static final boolean DEBUG_TREE				=false;
+	public static final boolean DEBUG_ITERATIONCOUNTER	=true;
 	
 	public static final int E1= 0B1;
 	public static final int E2= 0B11;
@@ -82,6 +80,7 @@ public class constants {
 	public static final int B31=0B1000000000000000000000000000000;
 	public static final int B32=0B10000000000000000000000000000000;
 	
+	public static final int E2N12=0B11000000000000;
 	public static final int E5N2=0B1111100;
 	public static final int E5N7=0B111110000000;
 	public static final int E7N8=0B111111100000000;

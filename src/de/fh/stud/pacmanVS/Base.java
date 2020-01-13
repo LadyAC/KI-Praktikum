@@ -139,6 +139,23 @@ public class Base {
 		}
 		return w;
 	}
+	
+	public static int[] BreitensucheOhneGegnerHindernis(int pac,int[] world) {
+		int[] oL=new int[WorldBase.length+1];
+		int[] w=world;
+		int eI,nI,ds,sh,st,re,wr=1,cmp,ptmp,exp;
+		cmp=(0B111111<<(ds=(2<<3)&0B11000));
+		w[oL[re=0]=ptmp=pac<<1]|=0B110000000000000;
+		while(re!=wr){
+			if((st=((exp=w[eI=oL[re++]])>>ds)&0B111111)!=0B111111) 		st++;
+			if((exp&0B1)!=0&&((w[nI=eI-2]&cmp)==0))						w[oL[wr++]=nI]|=(st|0B11000000)<<ds;
+			if((exp&0B10)!=0&&((w[nI=eI+2]&cmp)==0))					w[oL[wr++]=nI]|=(st|0B10000000)<<ds;
+			if((sh=exp&0B1111100)!=0&&((w[nI=eI-(sh>>1)]&cmp)==0))  	w[oL[wr++]=nI]|=(st|0B1000000)<<ds;
+			if((sh=exp&0B111110000000)!=0&&((w[nI=eI+(sh>>6)]&cmp)==0)) w[oL[wr++]=nI]|=st<<ds;
+		}
+		w[ptmp]=w[ptmp]&~(0B11111111<<ds)|0B1000000<<ds;
+		return w;
+	}
 
 	public static int[] BreitensucheMitGegnerHindernis(int[] pac,int[] world) {
 		int[] w=world;

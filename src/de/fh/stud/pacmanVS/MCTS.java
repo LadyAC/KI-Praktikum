@@ -17,7 +17,8 @@ public class MCTS extends Thread {
 	
 	public Playout playWait,playGoNorth,playGoSouth,playGoWest,playGoEast;
 //	private Phaser phaserWait,phaserGoNorth,phaserGoSouth,phaserGoEast,phaserGoWest;
-	public volatile double WaitScore,GoNorthScore,GoSouthScore,GoWestScore,GoEastScore;// hier schreiben die Threads die die Spiele Simulieren ihre Ergebnisse rein
+	//public volatile double WaitScore,GoNorthScore,GoSouthScore,GoWestScore,GoEastScore;
+	public volatile BackpropagationScoreVolatile WaitScore,GoNorthScore,GoSouthScore,GoWestScore,GoEastScore;// hier schreiben die Threads die die Spiele Simulieren ihre Ergebnisse rein
 	public volatile Phaser phaser;
 	private int iterationCounterSinceRootChange=0;
 
@@ -70,9 +71,12 @@ public class MCTS extends Thread {
 			iterationCounterSinceRootChange++;
 			if(RoundActionUsed!=lastRoundActionNumber){		
 				if(constants.DEBUG_ITERATIONCOUNTER) {
-					System.out.println("Iterationen seit Wurzeltausch: "+iterationCounterSinceRootChange+"\t Der Baum hat aktuell "+TreeTraverselCount()+" Knoten");
+					System.out.print("Iterationen seit Wurzeltausch: "+iterationCounterSinceRootChange+"\t Knoten im Baum: "+TreeTraverselCount()+" ->");
 				}
 				ChangeRoot(this.NewRoot);
+				if(constants.DEBUG_ITERATIONCOUNTER) {
+					System.out.println(" "+TreeTraverselCount());
+				}
 				iterationCounterSinceRootChange=0;
 			}
 		}
@@ -205,6 +209,11 @@ public class MCTS extends Thread {
 			System.out.print("Beginne SelectionAndExpansion bei Wurzel des Baums: ");
 			root.Weltzustand.print();
 		}
+		constants.DEBUG_UCB1=false;
+		if(java.util.concurrent.ThreadLocalRandom.current().nextInt(300000)%300000==0) {
+			constants.DEBUG_UCB1=true;
+		}
+		
 		while(true){
 			if(Selected.Children==null){  // Knoten ist ein Blattknoten bei dem noch nie verssucht wurde zu expandierene
 				Selected.expand();		// -> expandiere Blattknoten
@@ -231,36 +240,54 @@ public class MCTS extends Thread {
 					Node[] result = {Selected};	// gebe den aktuellen knoten zurück
 					return result;
 				}else{//es sind kindknoten vorhanden ->  berechne die UCB1 werte für die einzelnen Kindknoten und ermittle den knoten mit dem größten score
-					double MaxUCB1score=Double.NEGATIVE_INFINITY; 
-					int index=0;
-					double[] UCB1Scores=new double[Selected.Children.length];
-					
 					if(constants.DEBUG_UCB1) {
+						if(Selected==root) {
+							System.out.println("Berechne UCB1 score kindknoten der Wurzel");
+						}
 						System.out.println("Berechne UCB1 score der kindknoten");
 					}
 					
-					for(int i=0;i<Selected.Children.length;i++){
-						if(constants.DEBUG_UCB1) {
-							System.out.print("KindKnoten: ");
-							Selected.Children[i].Weltzustand.print();
-						}						
-						if((UCB1Scores[i]=Selected.Children[i].getUCB1())>MaxUCB1score) {
-							MaxUCB1score=UCB1Scores[index=i];
+					int index=0;
+					double[] UCB1Scores=new double[Selected.Children.length];
+					boolean unserZug=WorldState.zugreihenfolge[Selected.Weltzustand.amZug]<3;
+					double BestUCB1score=Selected.Children[0].getUCB1(unserZug);
+					if(unserZug) {
+						for(int i=1;i<Selected.Children.length;i++){
+							if(constants.DEBUG_UCB1) {
+								System.out.print("KindKnoten: ");
+								Selected.Children[i].Weltzustand.print();
+							}						
+							if((UCB1Scores[i]=Selected.Children[i].getUCB1(unserZug))>BestUCB1score) {
+								BestUCB1score=UCB1Scores[index=i];
+							}
 						}
-					}
-					if(MaxUCB1score==Double.MIN_VALUE) {
-						System.err.println("UCB1 SCore ist Double.MIN_VALUE");
-						System.err.println("anzahl verglichener knoten: "+Selected.Children.length);
-						for(int i=0;i<Selected.Children.length;i++){
-							System.err.println("Score ="+UCB1Scores[index=i]+" -> "+(UCB1Scores[index=i]>Double.MIN_VALUE));
+					}else {
+						for(int i=1;i<Selected.Children.length;i++){
+							if(constants.DEBUG_UCB1) {
+								System.out.print("KindKnoten: ");
+								Selected.Children[i].Weltzustand.print();
+							}						
+							if((UCB1Scores[i]=Selected.Children[i].getUCB1(unserZug))<BestUCB1score) {
+								BestUCB1score=UCB1Scores[index=i];
+							}
 						}
-					}
+					}					
+
+					
+
+//					if(MaxUCB1score==Double.MIN_VALUE) {
+//						System.err.println("UCB1 SCore ist Double.MIN_VALUE");
+//						System.err.println("anzahl verglichener knoten: "+Selected.Children.length);
+//						for(int i=0;i<Selected.Children.length;i++){
+//							System.err.println("Score ="+UCB1Scores[index=i]+" -> "+(UCB1Scores[index=i]>Double.MIN_VALUE));
+//						}
+//					}
 					if(constants.DEBUG_UCB1) {
-						System.out.println("waehle kindknoten nummer "+index+" mit UCB1 Score="+MaxUCB1score);
+						System.out.println("waehle kindknoten nummer "+index+" mit UCB1 Score="+BestUCB1score);
 					}
 					Selected=Selected.Children[index];
 					if(constants.DEBUG_SELECTION) {
-						System.out.println("Selection: KindKnoten nummer "+index+" mit UCB1 Score="+MaxUCB1score+" (aktion ="+Selected.action+")"+"runde="+Selected.Weltzustand.round+"_"+Selected.Weltzustand.amZug);
+						System.out.println("Selection: KindKnoten nummer "+index+" mit UCB1 Score="+BestUCB1score+" (aktion ="+Selected.action+")"+"runde="+Selected.Weltzustand.round+"_"+Selected.Weltzustand.amZug);
 					}
 				}
 			}

@@ -50,37 +50,46 @@ public class Node {
 	public void BackPropagation(){
 		Node currentNode=this;
 		double Score;
+		BackpropagationScore bScore = new BackpropagationScore();
+		
 		switch(action) {
-		case WAIT: 		Score=tree.WaitScore;		break;
-		case GO_NORTH:	Score=tree.GoNorthScore;	break;
-		case GO_SOUTH:	Score=tree.GoSouthScore;	break;
-		case GO_WEST: 	Score=tree.GoWestScore;		break;
-		case GO_EAST: 	Score=tree.GoEastScore;		break;
+		case WAIT: 		bScore.importFromVolatile(tree.WaitScore); 		break;
+		case GO_NORTH: 	bScore.importFromVolatile(tree.GoNorthScore);	break;
+		case GO_SOUTH:	bScore.importFromVolatile(tree.GoSouthScore);	break;
+		case GO_WEST: 	bScore.importFromVolatile(tree.GoWestScore);	break;
+		case GO_EAST: 	bScore.importFromVolatile(tree.GoEastScore);	break;
 		default: System.err.println("Fehler in BackPropagation Methode: action="+action+" DAS PROBLEM MUSS BEHOBEN WERDEN!");
 			Score=123456789;
 		}
-		ownScore=Score;
 		while(currentNode!=null){
 			currentNode.simulationCount++;
-			currentNode.totalScore+=Score;
+			currentNode.totalScore+=bScore.gameScore;
+			currentNode.ownScore+=bScore.PacScore[WorldState.zugreihenfolge[currentNode.Weltzustand.amZug]];
 			currentNode=currentNode.parent;
 		}
 	}
 	
 	
-	
-	public double getUCB1() {
-		double Score= (simulationCount==0)? Double.MAX_VALUE : ((double)totalScore)/simulationCount+2*Math.sqrt(2*Math.log(tree.root.simulationCount)/simulationCount);
-		if(constants.DEBUG_UCB1) System.out.println("UCB1= "+Score+"    NodeCount="+simulationCount+" TreeCount="+tree.root.simulationCount+" totalScore="+totalScore);
+	private static final int WAIT_PUNNISH=4;
+	public double getUCB1(boolean unserZug) {
+		double Score;
+		if(unserZug) {
+			Score= (simulationCount==0)? Double.MAX_VALUE : (totalScore+ownScore)/simulationCount+15*Math.sqrt(Math.log(tree.root.simulationCount)/simulationCount);			
+		}else{
+			Score= (simulationCount==0)? Double.MAX_VALUE : (totalScore-ownScore)/simulationCount+15*Math.sqrt(simulationCount/Math.log(tree.root.simulationCount));
+		}
+
+		if(constants.DEBUG_UCB1) System.out.println("UCB1= "+Score+"    NodeCount="+simulationCount+" TreeCount="+tree.root.simulationCount+" totalScore="+totalScore+"() ownScore="+ownScore);
 
 		if(Weltzustand.action==WAIT) {
+			int punnish=unserZug?-WAIT_PUNNISH:WAIT_PUNNISH;
 			if(WorldState.zugreihenfolge[Weltzustand.amZug]<3) {
 				if((Weltzustand.world[Weltzustand.PacPos[WorldState.zugreihenfolge[Weltzustand.amZug]]]&B13)==0) {
-					return Score-=4;
+					return Score+punnish;
 				}
 			}else {
 				if((Weltzustand.world[Weltzustand.PacPos[WorldState.zugreihenfolge[Weltzustand.amZug]]]&B13)!=0) {
-					return Score-=4;
+					return Score+punnish;
 				}
 			}
 			// Knoten bei denen ein Wait ausgeführt wurde von einem Pacman der nicht an der genze steht bekommen einen schlechteren UCB1 Score damit
@@ -96,14 +105,13 @@ public class Node {
 			}			
 		}
 		
-		
 		return Score;
 	}
 	
 	
 	public String NodeToString() {
 		String result="";
-		result+="parentID "+((parent==null)?"null":parent.id)+" ownID="+id+" ownScore="+ownScore+" totalScore="+totalScore+" simulationcount="+simulationCount+" UCB1="+getUCB1();
+		result+="parentID "+((parent==null)?"null":parent.id)+" ownID="+id+" ownScore="+ownScore+" totalScore="+totalScore+" simulationcount="+simulationCount+" UCB1="+getUCB1(WorldState.zugreihenfolge[Weltzustand.amZug]<3);
 		if(Children!=null) {
 			for(int i=0;i<Children.length;i++) {
 				result+=" ChildID="+Children[i].id;

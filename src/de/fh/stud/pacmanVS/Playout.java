@@ -26,7 +26,15 @@ public class Playout extends Thread{
 			phaser.awaitAdvance(phase);	// warte auf anweisung des MCTS threads weiterzuarbeiten
 			phase++;
 			running=true;
-			double score=toSimulate.SimulateGame();
+			BackpropagationScore SimScore=toSimulate.SimulateGame();
+//			if(java.util.concurrent.ThreadLocalRandom.current().nextInt(100000)%100000==0) {
+//				for(int i=0;i<6;i++) {
+//					System.out.println("Playout: OwnScore["+i+"] ="+SimScore.PacScore[i]);
+//				}			
+//			}
+
+			
+			BackpropagationScoreVolatile score=SimScore.exportToVolatile();
 			//System.out.println("calculated Score: "+score);
 			switch(id){
 			case 0: tree.WaitScore=score;  		break;

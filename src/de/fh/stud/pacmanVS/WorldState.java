@@ -2,7 +2,6 @@ package de.fh.stud.pacmanVS;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 import de.fh.pacmanVS.VSPacmanPercept;
 //import de.fh.pacmanVS.enums.Team;
@@ -17,7 +16,7 @@ public class WorldState {
 	public static int[] spawnPosition=new int[6];
 	public static int DotsOnEachSide=-42; //TODO: wert am anfang des Spiels setzen		// anzahl der Dots die ein Team beim spielstart besitzt
 	// (zur prüfung ob ein spiel gewonnen wurde beim Rollout)
-	public static int RolloutDepth=25;	// maximale tiefe eine RolloutSimulation
+	public static int RolloutDepth=25*6;	// maximale tiefe eine Simulation
 //	public static int NumberOfPacmans; 	// anzahl der pacmans im spiel ( =2 bei 1vs1 =6 bei 3vs3 )
 //	public static Random rn=new Random();
 	public VSPacmanAction action;		// aktion mit dem dieser Zustand erreicht wurde
@@ -38,13 +37,16 @@ public class WorldState {
 	int amZug; // id die auf das statische zugereihenfolge array verweist  
 	int ourTeamDotsSecured;
 	int enemyTeamDotsSecured;
-	private double tempScore=Double.NEGATIVE_INFINITY;
 	//public int bewertung;
 	
 //	public int PacmanamZug() {
 //		return spawnPosition[amZug];
 //	}
 //	
+	
+	
+
+	
 	
 	// Konstruktor der aus einen VSPacmanPercept Objekt das uns der Server liefert ein WorldState Objekt erstellt
 	// funktioniert nur für das erste percept da wir nur im ersten Zug wissen welcher pacman welche Dots trägt
@@ -101,6 +103,36 @@ public class WorldState {
 		this.action=action;
 	}
 	
+	public int PacmanPosAmZug() {
+		return PacPos[zugreihenfolge[amZug]]<<1;
+	}
+	
+	public int PacIDAmZug() {
+		return zugreihenfolge[amZug];
+	}
+	
+	public ArrayList<VSPacmanAction> possibleActions(){
+		ArrayList<VSPacmanAction> actions=new ArrayList<VSPacmanAction>(4);
+		int posNeu,shift = -42;	
+		int PacManPosition=PacmanPosAmZug();
+		int PacmanPosData=world[PacManPosition];
+		VSPacmanAction expandAction=WAIT;
+		for(int direction=0;direction<4;direction++){
+			posNeu=-42;
+			switch(direction){
+			case 0:	if((PacmanPosData&B1)!=0)			{expandAction=GO_WEST;	posNeu=PacManPosition-2;		 }	break;	//links expandieren
+			case 1:	if((PacmanPosData&B2)!=0)			{expandAction=GO_EAST;	posNeu=PacManPosition+2;		 }	break;	//rechts expandieren
+			case 2:	if((shift=(PacmanPosData&E5N2))!=0)	{expandAction=GO_NORTH;	posNeu=PacManPosition-(shift>>1);}	break;	//oben expandieren
+			case 3: if((shift=(PacmanPosData&E5N7))!=0)	{expandAction=GO_SOUTH;	posNeu=PacManPosition+(shift>>6);}	break;	//unten expandieren
+			}
+			if(posNeu==-42) continue;
+			actions.add(expandAction);
+		}
+		return actions;
+	}
+	
+	
+	
 	public ArrayList<WorldState> expand_AllDirectionsAndWait() {
 		if(amZug==5 && round == 400 || DotsOnEachSide==enemyTeamDotsSecured || DotsOnEachSide==ourTeamDotsSecured) {			
 //			System.err.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! "
@@ -127,6 +159,7 @@ public class WorldState {
 		return neu;
 	}
 
+	
 	
 	public ArrayList<WorldState> expand_AllDirections() {
 		/*	die expand Methode simuliert einen schritt in alle 4 Himmelsrichtungen
@@ -306,36 +339,35 @@ public class WorldState {
 		zustand+=action;
 		System.out.println(zustand);
 	}
+	int anzKindKnoten;
 	
-	
-	public double SimulateGame() {
-		long sTime=System.nanoTime();
+	public BackpropagationScore SimulateGame() {
+		BackpropagationScore SimulationScore= new BackpropagationScore();
+//		long sTime=System.nanoTime();
 		WorldState AktuellerKnoten=this;
-		int MaxSimTiefe=RolloutDepth*6; //1200 entspricht 200 Ruden bei 6 pacman
+		int MaxSimTiefe=RolloutDepth; //1200 entspricht 200 Ruden bei 6 pacman
 		int SimTiefe=0;
-		double bestScore,BestIndex;
+		double bestScore;
 		WorldState tmp;
 		ArrayList<WorldState> kandidaten;
-		boolean maximize=WorldState.zugreihenfolge[AktuellerKnoten.amZug]<3;
 		if(round>400 || round==400 && amZug==5) {
 			System.err.println("Simulation gestarted für folgende runde: "+this.round+"_"+this.amZug);
 			print();
+			System.exit(0);
 		}
 		while(true){
 			SimTiefe++;
 			kandidaten=AktuellerKnoten.expand_AllDirections();// schritt 1 expandiere aktuellen knoten
+			anzKindKnoten=kandidaten.size();
 			if(kandidaten.size()==0) {
-				return AktuellerKnoten.getScore();
+				SimulationScore.gameScore=AktuellerKnoten.getScore();
+				return SimulationScore;
 			}
 			tmp=kandidaten.get(0);
-			if(System.nanoTime()-sTime > 500000000) { // wenn die simulation nach 0,5 Sekunde noch nicht vorbei ist ist wahrscheinlich irgendein bug verantwortlich
-				System.err.println("Playout Simulation abgebrochen wegen zeitüberschreitung (>0.5s)");
-				return 0;// die simulation wird dan einfach mit unentschieden beendet in der hoffnung das der bug nicht erneut auftritt
-			}
-			
 			// schritt 2 prüfe ob das simulationsende durch rundenzahl oder erreicht ist falls ja -> return best score
-			if(tmp.isLastMove()||SimTiefe==MaxSimTiefe){	
+			if(SimTiefe==MaxSimTiefe||tmp.isLastMove()){	
 				bestScore=tmp.getScore();
+				boolean maximize=WorldState.zugreihenfolge[AktuellerKnoten.amZug]<3;
 				if(maximize){ // letzter schritt wurde von unserem pacman gemacht (score maximieren)
 					for(int i=1;i<kandidaten.size();i++)
 						if(kandidaten.get(i).getScore()>bestScore)
@@ -345,83 +377,40 @@ public class WorldState {
 						if(kandidaten.get(i).getScore()<bestScore)
 							bestScore=kandidaten.get(i).getScore();
 				}
-				return bestScore;
+				SimulationScore.gameScore=bestScore;
+				return SimulationScore;
 			}
-			
 			for(int i=0;i<kandidaten.size();i++) {
 				if(kandidaten.get(i).isVictoryBySecuredDots()) {
-					return kandidaten.get(i).getScore();
+					SimulationScore.gameScore=kandidaten.get(i).getScore();
+					return SimulationScore;
 				}
 			}
-			//TODO simulationstiefe abfragen und eventuell simulation abbrechen		MaxSimTiefe==SimTiefe
-			
-			// schritt 3 hat das team was zuletzt dran war in einem der knoten gewonnen dutch einsammeln aller Dots? ja -> return score
-			for(int i=0;i<kandidaten.size();i++)
-				if(maximize){//unser pacman hat den letzten zug gemacht
-					if(kandidaten.get(i).ourTeamDotsSecured==WorldState.DotsOnEachSide) 
-						return kandidaten.get(i).getScore();
-				}else// gegner pacman hat den letzteb zug gemacht
-					if(kandidaten.get(i).enemyTeamDotsSecured==WorldState.DotsOnEachSide)
-						return kandidaten.get(i).getScore();
-			
-			
-			// schritt 4 Bewerte die Knoten heuristisch und wähle besten ----------------------OPTION 1-------------------
-//BestIndex=0;
-//if(maximize){ //unser pacman hat den letzten zug gemacht	
-//	bestScore=42;// TODO Heuristik methode für gegner züge einfügen
-//}else{
-//	bestScore=42;// TODO Heuristik methode für unsere züge einfügen
-//}
-//for(int i=0;i<kandidaten.size();i++) {
-//	int score;
-//	if(maximize){ //unser pacman hat den letzten zug gemacht (das heißt diesen zug macht der gegner -> score minimieren)
-//		score=42;// TODO Heuristik methode für gegner züge einfügen (falls wir dafür überhaupt untschiedliche heuristiken haben)
-//		if(score<bestScore) {
-//			bestScore=score;
-//			BestIndex=i;
-//		}
-//	}else{		//gegner pacman hat den letzten zug gemacht (das heißt diesen zug machen wir -> score maximieren)
-//		score=42;// TODO Heuristik methode für unsere züge einfügen (falls wir dafür überhaupt untschiedliche heuristiken haben)
-//		if(score<bestScore) {
-//			bestScore=score;
-//			BestIndex=i;
-//		}
-//	}
-//}
-//AktuellerKnoten=kandidaten.get(BestIndex);
-			//------------------------------------------------------- OPTION 1 ENDE -----------------------------------------
-			
-
-			// schritt 4 alternativ: wähle knoten zufällig------------------------------OPTION 2------------------------------
 			int index=java.util.concurrent.ThreadLocalRandom.current().nextInt(kandidaten.size());
-//			if(index==kandidaten.size()-1) { // wenn in der Simulation Wait ausgeführt wird würfel erneut (damit simulationen weniger häufig wait enthalten und damit etwas aussgaekräftiger werden)
-//				index=java.util.concurrent.ThreadLocalRandom.current().nextInt(kandidaten.size());
-//			}
-			AktuellerKnoten=kandidaten.get(index);
-			// --------------------------------------------------------OPTION 2 ENDE------------------------------------------
-			//TODO: sich für heuristische oder zufällige version entscheiden und die andere version löschen/auskomentieren
+			WorldState neuerKnoten=kandidaten.get(index);
+			for(int i=0;i<6;i++) {
+				int carried=AktuellerKnoten.carriedDots[i].length;
+				int carriedNeu=neuerKnoten.carriedDots[i].length;
+				if(carried!=carriedNeu){
+					if(carriedNeu==0) {// pacman ist hatte vorher dots und hat jetzt keine mehr
+						if(spawnPosition[i]==neuerKnoten.PacPos[i]) {// pacman steht auf seiner spawnposition (ist also gestorben)
+							SimulationScore.PacScore[i]-=carried*0.5;	// 0,5 punkte abzug für jeden getragenen dot für den Pacman der gessstorben ist
+							int oldpos=AktuellerKnoten.PacPos[i];
+							for(int i2=0;i2<6;i2++) {
+								if(neuerKnoten.PacPos[i2]==oldpos){
+									SimulationScore.PacScore[i2]+=carried*0.5;	// 0,5 Punkte für jeden dot den der getötete getragen hat für den killer
+									break;
+								}
+							}
+						}else{ // wenn der pacman nicht gestprben ist aber trotzdem seine dots verloren hat muss er sie gesichert haben
+							SimulationScore.PacScore[i]+=carried*0.5;	// 0,5 punkte für jeden dot der gesichert wurde
+						}
+					}else{ // wenn sich die anzahl der getragenen dots verändert hat aber nicht auf 0 hat der Pacman wohl einen dot gesammelt
+						SimulationScore.PacScore[i]+=0.5;
+					}
+				}
+			}
+			AktuellerKnoten=neuerKnoten;
 		}
-
-		
-		
-		
-		
-		// (das team was jetzt dran ist kann während der gegner dran ist nicht gewinnen)
-		
-		// schritt 5 wenn wir dran sind: wähle knoten mit höchster bewertung  wenn gegner am zug ist: wähle knoten mit geringster bewertung
-		// schritt 6 prüfe ob das simulationsende durch maximale Simulationstiefe erreicht ist falls ja -> return score von gewählten knoten
-		// nehme gewählten knoten und starte damit wieder bei schritt 1
-
-
-		/*
-		Simuliert ein Spiel für maximal x(=200?) Runden oder bis eins der Beiden Teams gewonnen 
-		hat und liefert einen Score zurück
-		*/
 	}
-	
-
-	
-	
-	
-	
 }
