@@ -111,7 +111,7 @@ public class WorldState {
 		return zugreihenfolge[amZug];
 	}
 	
-	public ArrayList<VSPacmanAction> possibleActions(){
+	public ArrayList<VSPacmanAction> possibleActions(int[] PacPosSameTeam){
 		ArrayList<VSPacmanAction> actions=new ArrayList<VSPacmanAction>(4);
 		int posNeu,shift = -42;	
 		int PacManPosition=PacmanPosAmZug();
@@ -124,6 +124,12 @@ public class WorldState {
 			case 1:	if((PacmanPosData&B2)!=0)			{expandAction=GO_EAST;	posNeu=PacManPosition+2;		 }	break;	//rechts expandieren
 			case 2:	if((shift=(PacmanPosData&E5N2))!=0)	{expandAction=GO_NORTH;	posNeu=PacManPosition-(shift>>1);}	break;	//oben expandieren
 			case 3: if((shift=(PacmanPosData&E5N7))!=0)	{expandAction=GO_SOUTH;	posNeu=PacManPosition+(shift>>6);}	break;	//unten expandieren
+			}
+			for(int i=0;i<PacPosSameTeam.length;i++) { // steht ein pacman deselben teams auf dem feld? ja->keine gültige aktion
+				if(PacPosSameTeam[i]==posNeu) {
+					posNeu=-42;
+					break;
+				}
 			}
 			if(posNeu==-42) continue;
 			actions.add(expandAction);

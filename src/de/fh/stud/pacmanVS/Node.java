@@ -19,6 +19,7 @@ public class Node {
 	double totalScore=0;				// gesammt score aller gespielten Simulationen von diesem knoten und aller kind knoten (optional: + heuristische bewertung dieses Knoten)
 	
 	double ownScore=0;				// nur für debugging
+	double heuristicScore;
 	final int id;						// nur für debugging
 	
 	public Node(WorldState Weltzustand,MCTS tree) {	// Kosntruktor für wurzelknoten

@@ -2,13 +2,14 @@ package de.fh.stud.pacmanVS;
 
 import de.fh.pacmanVS.enums.VSPacmanTileType;
 import de.fh.util.Vector2;
-
 import static de.fh.pacmanVS.enums.VSPacmanTileType.*;
+import static de.fh.pacmanVS.enums.VSPacmanAction.*;
 import java.util.ArrayList;
 import java.util.List;
 
 import de.fh.pacmanVS.VSPacmanStartInfo;
 import de.fh.pacmanVS.enums.Team;
+import de.fh.pacmanVS.enums.VSPacmanAction;
 
 import static de.fh.pacmanVS.enums.Team.*;
 import static de.fh.stud.pacmanVS.constants.*;
@@ -165,7 +166,7 @@ public class Base {
 		int[] w_nOl=new int[12];
 		int[] swap;
 		int exp,steps=0,wTmp,ds,r,eI,nI,sh,cmp,area=0B1000000000000,tmp,nTmp,oI,todo=1;
-		for(int i=0,t;i<6;i++){
+		for(int i=0,t;i<pac.length;i++){
 			w_cOl[t=((w[pac[i]]&0B1000000000000)==0)?((i<3)?i+6:i):(i<3)?i:(i+6)]=1;
 			cOl[t<<5]=(pac[i]<<1);
 		}
@@ -253,6 +254,42 @@ public class Base {
 //		int distance=world
 //		return distance;
 //	}
+	
+	public static VSPacmanAction actioToField(int indexBig,int[] world,int pacID) {
+		VSPacmanAction action=WAIT;;
+		int ds=(pacID+2)<<3&0B11000;
+		int iInc=pacID<2?0:1;
+		int posNavData=world[indexBig];
+		int posData=world[indexBig+iInc];
+		while(((posData>>ds)&E6)>0) {
+			switch((posData>>(ds+6))&0B11) {
+			case 0B00:
+				indexBig=indexBig+((posNavData>>2)&E6);
+				action=GO_SOUTH;
+				break;
+			case 0B01: 
+				indexBig=indexBig-((posNavData>>6)&E6);
+				action=GO_NORTH;
+				break;
+			case 0B10: 
+				action=GO_EAST;
+				indexBig-=2;
+				break;
+			case 0B11: 
+				action=GO_WEST;
+				indexBig+=2;
+				break;
+			default:
+				System.err.println("ERROR Base.actioToField default case");
+				action=WAIT;
+			}
+			System.out.println("actionToField->"+((posData>>ds)&E6));
+			posNavData=world[indexBig];
+			posData=world[indexBig+iInc];
+		}
+		return action;
+	}
+	
 	
 	
 	public static void DrawDistanceInfo(VSPacmanTileType[][] view,int[] worldAndData) { 
