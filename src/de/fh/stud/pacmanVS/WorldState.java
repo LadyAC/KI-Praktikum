@@ -20,7 +20,7 @@ public class WorldState {
 //	public static int NumberOfPacmans; 	// anzahl der pacmans im spiel ( =2 bei 1vs1 =6 bei 3vs3 )
 //	public static Random rn=new Random();
 	public VSPacmanAction action;		// aktion mit dem dieser Zustand erreicht wurde
-	
+	private double Score=Double.NEGATIVE_INFINITY;
 	// 0= unser pacman 1
 	// 1= unser pacman 2
 	// 2= unser pacman 3
@@ -318,9 +318,12 @@ public class WorldState {
 		return Score/PointsPerDot;
 	}
 	
-	private double getScore() {
+	public double getScore() {
 	//	return (tempScore==Double.NEGATIVE_INFINITY)?tempScore=calculateScoreImproved():tempScore;
-		return ourTeamDotsSecured-enemyTeamDotsSecured;
+		if(Score==Double.NEGATIVE_INFINITY) {
+			Score=ourTeamDotsSecured-enemyTeamDotsSecured;
+		}
+		return Score;
 	}
 	
 	private boolean isLastMove() {

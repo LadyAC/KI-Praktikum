@@ -229,6 +229,7 @@ public class MCTS extends Thread {
 					if(constants.DEBUG_SELECTION) {
 						System.out.println("Es wurden "+Selected.Children.length+" neue Blattknoten erzeugt und zurückgegeben mit runde="+Selected.Children[0].Weltzustand.round+"_"+Selected.Children[0].Weltzustand.amZug);
 					}
+					Heuristik.HeuristischeEmpfehlungen(Selected.Weltzustand, Selected.Children);
 					return Selected.Children;	
 				}else{							
 					System.err.println("SelectionAndExpansion hat festegestellt das der ausgewählte kindknoten null ist das sollte eigentlich nicht passieren");

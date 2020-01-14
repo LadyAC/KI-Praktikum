@@ -9,6 +9,7 @@ import de.fh.pacmanVS.VSPacmanGameResult;
 import de.fh.pacmanVS.VSPacmanPercept;
 import de.fh.pacmanVS.enums.VSPacmanAction;
 import de.fh.pacmanVS.enums.VSPacmanActionEffect;
+import de.fh.pacmanVS.enums.VSPacmanTileType;
 import de.fh.util.Vector2;
 import static de.fh.stud.pacmanVS.constants.*;
 
@@ -20,6 +21,9 @@ public class MyPacmanVSAgent extends VSPacmanAgent {
 	static MCTS SearchTree;
 	public static Thread MainThread;
 	long StartTimeUpdateState;
+	
+	public static VSPacmanTileType[][] view;
+	
 	public static void main(String[] args) {
 		MyPacmanVSAgent agent = new MyPacmanVSAgent("AgentenName");
 		Agent.start(agent, "127.0.0.1", 5000);
@@ -49,6 +53,7 @@ public class MyPacmanVSAgent extends VSPacmanAgent {
 	public void updateState(VSPacmanPercept percept, VSPacmanActionEffect actionEffect) {
 		StartTimeUpdateState=System.nanoTime();
 		if(firstpercept){
+			view=percept.getTotalLevel();
 			seconds = 1.8;
 			Node.Xsize=percept.getTotalLevel().length;
 			System.out.println("Erstes Percept erhalten");

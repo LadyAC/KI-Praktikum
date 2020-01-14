@@ -7,6 +7,9 @@ import static de.fh.stud.pacmanVS.constants.*;
 
 public class Heuristik {
 
+	private static final int DEATH_PUNNISH_SCORE=500;
+	private static final int DOT_REWARD_SCORE=300;
+	private static final int ENEMY_PAC_SCORE_PER_DOT=50;
 	public static void HeuristischeEmpfehlungen(WorldState state,Node[] ChildNodes) {
 		int[] world_OH=state.world.clone();
 		int[] empfehlungen;
@@ -18,13 +21,12 @@ public class Heuristik {
 		// wait wird niemals empfohlen
 		// ein Zug bei dem der Pacman stirbt wird niemals empfohlen
 		int[] pacSameTeam=new int[3];
-		if(unserZug) 
+		if(unserZug)
 			for(int i=0;i<3;i++) 
-				pacSameTeam[i]=state.PacPos[i]>>1;
+				pacSameTeam[i]=state.PacPos[i]<<1;
 		else 
 			for(int i=3;i<6;i++) 
-				pacSameTeam[i-3]=state.PacPos[i]>>1;
-		
+				pacSameTeam[i-3]=state.PacPos[i]<<1;
 		ArrayList<VSPacmanAction> actions=state.possibleActions(pacSameTeam);// ermittle die gültigen züge die kein Wait sind
 		ArrayList<Integer> posNeuList=new ArrayList<Integer>(4);
 		empfehlungen=new int[actions.size()];
@@ -43,7 +45,7 @@ public class Heuristik {
 				posNeu=pos-((PacPosData&E5N2)>>1);
 				break;
 			case GO_SOUTH:
-				posNeu=pos-((PacPosData&E5N7)>>6);
+				posNeu=pos+((PacPosData&E5N7)>>6);
 				break;
 			default: System.err.println("Error default case in heuristik empfehlung");
 			posNeu=-42;
@@ -51,11 +53,11 @@ public class Heuristik {
 			posNeuList.add(posNeu);
 			if(unserZug) {
 				for(int i2=3;i2<6;i2++) {
-					if(posNeu==(state.PacPos[i2]>>1)){
+					if(posNeu==(state.PacPos[i2]<<1)){
 						if((world_OH[posNeu]&B13)==0) 
-							empfehlungen[i]=-200;//pacman am zug stirbt (wir)    	negative bewertung
+							empfehlungen[i]=-DEATH_PUNNISH_SCORE;//pacman am zug stirbt (wir)    	negative bewertung
 						else 
-							empfehlungen[i]=200;//pacman auf feld stirbt (gegner)	positive bewertung
+							empfehlungen[i]=DEATH_PUNNISH_SCORE;//pacman auf feld stirbt (gegner)	positive bewertung
 						break;
 					}
 				}
@@ -63,8 +65,8 @@ public class Heuristik {
 					if((world_OH[posNeu]&0B1)!=0){//links
 						int posNeuNeu=posNeu-2;
 						for(int i2=3;i2<6;i2++){
-							if(posNeuNeu==(state.PacPos[i2]>>1)){
-								empfehlungen[i]=-200;
+							if(posNeuNeu==(state.PacPos[i2]<<1)){
+								empfehlungen[i]=-DEATH_PUNNISH_SCORE;
 								break;
 							}
 						}
@@ -72,8 +74,8 @@ public class Heuristik {
 					if((world_OH[posNeu]&0B10)!=0){//rechts
 						int posNeuNeu=posNeu+2;
 						for(int i2=3;i2<6;i2++){
-							if(posNeuNeu==(state.PacPos[i2]>>1)){
-								empfehlungen[i]=-200;
+							if(posNeuNeu==(state.PacPos[i2]<<1)){
+								empfehlungen[i]=-DEATH_PUNNISH_SCORE;
 								break;
 							}
 						}
@@ -82,8 +84,8 @@ public class Heuristik {
 					if((shift=(world_OH[posNeu]>>2)&E5)!=0){//oben
 						int posNeuNeu=posNeu-2*shift;
 						for(int i2=3;i2<6;i2++){
-							if(posNeuNeu==(state.PacPos[i2]>>1)){
-								empfehlungen[i]=-200;
+							if(posNeuNeu==(state.PacPos[i2]<<1)){
+								empfehlungen[i]=-DEATH_PUNNISH_SCORE;
 								break;
 							}
 						}
@@ -91,8 +93,8 @@ public class Heuristik {
 					if((shift=(world_OH[posNeu]>>7)&E5)!=0){//unten
 						int posNeuNeu=posNeu+2*shift;
 						for(int i2=3;i2<6;i2++){
-							if(posNeuNeu==(state.PacPos[i2]>>1)){
-								empfehlungen[i]=-200;
+							if(posNeuNeu==(state.PacPos[i2]<<1)){
+								empfehlungen[i]=-DEATH_PUNNISH_SCORE;
 								break;
 							}
 						}
@@ -104,13 +106,13 @@ public class Heuristik {
 				// falls ja negativ bewerten
 			}else {
 				for(int i2=0;i2<3;i2++) {
-					if(posNeu==(state.PacPos[i2]>>1)){
+					if(posNeu==(state.PacPos[i2]<<1)){
 						if((world_OH[posNeu]&B13)!=0) {
 							//pacman am zug stirbt (gegner)		positive bewertung
-							empfehlungen[i]=200;
+							empfehlungen[i]=DEATH_PUNNISH_SCORE;
 						}else {
 							//pacman auf feld stirbt (wir)		negative bewertung
-							empfehlungen[i]=-200;
+							empfehlungen[i]=-DEATH_PUNNISH_SCORE;
 						}						
 						break;
 					}					
@@ -120,8 +122,8 @@ public class Heuristik {
 					if((world_OH[posNeu]&0B1)!=0){//links
 						int posNeuNeu=posNeu-2;
 						for(int i2=0;i2<3;i2++){
-							if(posNeuNeu==(state.PacPos[i2]>>1)){
-								empfehlungen[i]=200;
+							if(posNeuNeu==(state.PacPos[i2]<<1)){
+								empfehlungen[i]=DEATH_PUNNISH_SCORE;
 								break;
 							}
 						}
@@ -129,8 +131,8 @@ public class Heuristik {
 					if((world_OH[posNeu]&0B10)!=0){//rechts
 						int posNeuNeu=posNeu+2;
 						for(int i2=0;i2<3;i2++){
-							if(posNeuNeu==(state.PacPos[i2]>>1)){
-								empfehlungen[i]=200;
+							if(posNeuNeu==(state.PacPos[i2]<<1)){
+								empfehlungen[i]=DEATH_PUNNISH_SCORE;
 								break;
 							}
 						}
@@ -139,8 +141,8 @@ public class Heuristik {
 					if((shift=(world_OH[posNeu]>>2)&E5)!=0){//oben
 						int posNeuNeu=posNeu-2*shift;
 						for(int i2=0;i2<3;i2++){
-							if(posNeuNeu==(state.PacPos[i2]>>1)){
-								empfehlungen[i]=200;
+							if(posNeuNeu==(state.PacPos[i2]<<1)){
+								empfehlungen[i]=DEATH_PUNNISH_SCORE;
 								break;
 							}
 						}
@@ -148,8 +150,8 @@ public class Heuristik {
 					if((shift=(world_OH[posNeu]>>7)&E5)!=0){//unten
 						int posNeuNeu=posNeu+2*shift;
 						for(int i2=0;i2<3;i2++){
-							if(posNeuNeu==(state.PacPos[i2]>>1)){
-								empfehlungen[i]=200;
+							if(posNeuNeu==(state.PacPos[i2]<<1)){
+								empfehlungen[i]=DEATH_PUNNISH_SCORE;
 								break;
 							}
 						}
@@ -158,8 +160,6 @@ public class Heuristik {
 			}			
 		}
 		// setzte für diese züge einen strafwert ein (berücksitige das gegner einen negativen score bevorzugen und bei ihnen positive werte eine strafe sind)
-		
-
 		
 		
 		
@@ -173,26 +173,36 @@ public class Heuristik {
 				if((world_OH[i]&E2N12)==E2N12)
 					enemyDotPos.add(i);
 		
+
+		
+		
 		if(enemyDotPos.size()!=0){
-			Base.BreitensucheOhneGegnerHindernis(pos,world_OH); // suche den kürzesten weg zu jedem feld auf der karte
+			Base.BreitensucheOhneGegnerHindernis(pos/2,world_OH); // suche den kürzesten weg zu jedem feld auf der karte
+			
+//			Base.DrawDistanceInfo(de.fh.stud.pacmanVS.MyPacmanVSAgent.view, world_OH);
+//			for(int i=0;i<enemyDotPos.size();i++) {
+//				System.out.println("Heuristik: enemy Dot at "+Base.IntToVector2(enemyDotPos.get(i)/2)+" ("+enemyDotPos.get(i)+")   entfernung="+(((world_OH[enemyDotPos.get(i)])>>16)&E6));
+//			}
+			
 			
 			int minDistance=Integer.MAX_VALUE;
 			int minIndex=-42;
 			int distance;
+//			System.out.println("Heuristik: suche dot mit geringester entfernung:");
 			for(int i=0;i<enemyDotPos.size();i++) {
-				distance=((world_OH[enemyDotPos.get(0)])>>16)&E6;
+				distance=((world_OH[enemyDotPos.get(i)])>>16)&E6;
 				if(minDistance>distance) {
+//					System.out.println("Heuristik: neues minimum: distance="+distance+" enemyDotPos.get(0)="+Base.IntToVector2(enemyDotPos.get(i)/2));
 					minIndex=i;
 					minDistance=distance;
 				}
 			}
-			
-			VSPacmanAction action=Base.actioToField(minIndex, world_OH, 0);
+			VSPacmanAction action=Base.actioToField(enemyDotPos.get(minIndex), world_OH, 0);
 			if(unserZug) {
 				for(int i=0;i<actions.size();i++) {
 					if(actions.get(i)==action) {
 						if(empfehlungen[i]>=0) {
-							empfehlungen[i]+=200;
+							empfehlungen[i]+=DOT_REWARD_SCORE;
 						}
 						break;
 					}
@@ -201,7 +211,7 @@ public class Heuristik {
 				for(int i=0;i<actions.size();i++) {
 					if(actions.get(i)==action) {
 						if(empfehlungen[i]<=0) {
-							empfehlungen[i]-=200;
+							empfehlungen[i]-=DOT_REWARD_SCORE;
 						}
 						break;
 					}
@@ -209,32 +219,28 @@ public class Heuristik {
 			}
 		}
 		// empfehlung für gehe zu dot mit geringster entfernung ende
-		
 		//sind gegner im eigenen gebiet?
 		ArrayList<Integer> EnemysInOurAreaPOS=new ArrayList<Integer>(3);
 		ArrayList<Integer> EnemysInOurAreaID=new ArrayList<Integer>(3);
 		if(unserZug){
 			for(int i=3;i<6;i++) 
-				if((world_OH[state.PacPos[i]>>1]&B13)!=0) {
+				if((world_OH[state.PacPos[i]<<1]&B13)!=0) {
 					EnemysInOurAreaPOS.add(state.PacPos[i]);
 					EnemysInOurAreaID.add(i);
 				}
 			if(EnemysInOurAreaPOS.size()>0) {
 				int[] world_MH=state.world.clone();
-				int[] enemys=new int[EnemysInOurAreaPOS.size()];
-				for(int i=0;i<EnemysInOurAreaPOS.size();i++) {
-					enemys[i]=EnemysInOurAreaPOS.get(i);
-				}
-				Base.BreitensucheMitGegnerHindernis(enemys, world_MH);
-				for(int i=0;i<EnemysInOurAreaPOS.size();i++) {
-					int ds=i<<3&0B11000;
-					int iInc=i<2?0:1;
-					if(((world_MH[(WorldState.spawnPosition[3]>>1)+iInc]>>ds)&E6)==0) {// gegner pacman i hat KEINEN garantierten weg nach hause
-						VSPacmanAction action=Base.actioToField(enemys[i]>>1, world_OH, 0);
+				Base.BreitensucheMitGegnerHindernis(state.PacPos, world_MH);
+				for(int i=0;i<EnemysInOurAreaID.size();i++){
+					int pacID=EnemysInOurAreaID.get(i);
+					int ds=pacID<<3&0B11000;
+					int iInc=pacID<2?0:1;
+					if(((world_MH[(WorldState.spawnPosition[3]<<1)+iInc]>>ds)&E6)==0) {// gegner pacman i hat KEINEN garantierten weg nach hause
+						VSPacmanAction action=Base.actioToField(EnemysInOurAreaPOS.get(i)<<1, world_MH, pacID);
 						for(int i2=0;i2<actions.size();i2++) {
 							if(actions.get(i2)==action) {
 								if(empfehlungen[i2]>=0){
-									empfehlungen[i2]+=40*(1+state.carriedDots[EnemysInOurAreaID.get(i)].length);
+									empfehlungen[i2]+=ENEMY_PAC_SCORE_PER_DOT*(1+state.carriedDots[EnemysInOurAreaID.get(i)].length);
 								}
 								break;
 							}
@@ -244,22 +250,19 @@ public class Heuristik {
 			}
 		}else{
 			for(int i=0;i<3;i++) 
-				if((world_OH[state.PacPos[i]>>1]&B13)==0) {
+				if((world_OH[state.PacPos[i]<<1]&B13)==0) {
 					EnemysInOurAreaPOS.add(state.PacPos[i]);
 					EnemysInOurAreaID.add(i);
 				}
 			if(EnemysInOurAreaPOS.size()>0) {
 				int[] world_MH=state.world.clone();
-				int[] enemys=new int[EnemysInOurAreaPOS.size()];
+				Base.BreitensucheMitGegnerHindernis(state.PacPos, world_MH);
 				for(int i=0;i<EnemysInOurAreaPOS.size();i++) {
-					enemys[i]=EnemysInOurAreaPOS.get(i);
-				}
-				Base.BreitensucheMitGegnerHindernis(enemys, world_MH);
-				for(int i=0;i<EnemysInOurAreaPOS.size();i++) {
-					int ds=i<<3&0B11000;
-					int iInc=i<2?0:1;
-					if(((world_MH[(WorldState.spawnPosition[3]>>1)+iInc]>>ds)&E6)==0) {// gegner pacman i hat KEINEN garantierten weg nach hause
-						VSPacmanAction action=Base.actioToField(enemys[i]>>1, world_OH, 0);
+					int pacID=EnemysInOurAreaID.get(i);
+					int ds=pacID<<3&0B11000;
+					int iInc=pacID<2?0:1;
+					if(((world_MH[(WorldState.spawnPosition[3]<<1)+iInc]>>ds)&E6)==0) {// gegner pacman i hat KEINEN garantierten weg nach hause
+						VSPacmanAction action=Base.actioToField(EnemysInOurAreaPOS.get(i)<<1, world_MH, pacID);
 						for(int i2=0;i2<actions.size();i2++) {
 							if(actions.get(i2)==action) {
 								if(empfehlungen[i2]<=0){
@@ -272,14 +275,28 @@ public class Heuristik {
 				}
 			}
 		}
-		for(int i=0;i<empfehlungen.length;i++) {
-			if(actions.get(i)==ChildNodes[i].Weltzustand.action) {
-				System.out.println("heuristic Check confirmed");
-			}else {
-				System.err.println("heuristic Check Failed");
-			}
-			ChildNodes[i].heuristicScore=empfehlungen[i];
+//		System.out.println("-------------------------------------------------START---------------------------------------------------------");
+		for(int i=0;i<ChildNodes.length;i++) {
+//			System.out.println("ChildenNode["+i+"]= "+ChildNodes[i].Weltzustand.action);
 		}
+		
+		for(int i=0;i<empfehlungen.length;i++) {
+			ChildNodes[i].heuristicScore=empfehlungen[i];
+//			System.out.println("heuristic Check confirmed: Node/empfehlung: "+ChildNodes[i].Weltzustand.action+"/"+actions.get(i)+" ("+empfehlungen[i]+")");
+		}
+		if(empfehlungen.length+1==ChildNodes.length) {
+//			System.out.println("numbers look ok");
+		}else {
+			System.out.println("something is wrong: "+(empfehlungen.length+1)+" != "+ChildNodes.length);
+			System.out.print("parent node: ");
+			state.print();
+			System.out.println("");
+			for(int i=0;i<pacSameTeam.length;i++) {
+				System.out.println("pacSameTeam ="+pacSameTeam[i]+"  -> "+Base.IntToVector2(pacSameTeam[i])+"-> "+Base.IntToVector2(pacSameTeam[i]/2));
+			}
+			state.possibleActions(pacSameTeam);
+		}
+//		System.out.println("-------------------------------------------------END---------------------------------------------------------");
 	}
 
 

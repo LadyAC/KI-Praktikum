@@ -166,7 +166,7 @@ public class Base {
 		int[] w_nOl=new int[12];
 		int[] swap;
 		int exp,steps=0,wTmp,ds,r,eI,nI,sh,cmp,area=0B1000000000000,tmp,nTmp,oI,todo=1;
-		for(int i=0,t;i<pac.length;i++){
+		for(int i=0,t;i<6;i++){
 			w_cOl[t=((w[pac[i]]&0B1000000000000)==0)?((i<3)?i+6:i):(i<3)?i:(i+6)]=1;
 			cOl[t<<5]=(pac[i]<<1);
 		}
@@ -231,16 +231,9 @@ public class Base {
 			for(int i=0;i<12;i++)	
 				if((todo+=w_nOl[i])>0) 
 					break;
-			
 			swap=cOl;	cOl=nOl;	 nOl=swap;	// tausche referenzen cOl und nOl
 			swap=w_cOl; w_cOl=w_nOl; w_nOl=swap;// tausche referenzen w_cOl und w_nOl
 		}
-		
-
-		
-//		for(int i=0;i<6;i++)
-//			w[tmp=(pac[i]<<1)+(i<2?0:1)]=(w[tmp]&~(E8<<(ds=(i+2)<<3)))|(1<<(B7<<ds));
-		
 		w[(pac[0]<<1)]  =(w[(pac[0]<<1)]  &0B11111111000000001111111111111111)|0B00000000010000000000000000000000;
 		w[(pac[1]<<1)]  =(w[(pac[1]<<1)]  &0B00000000111111111111111111111111)|0B01000000000000000000000000000000;
 		w[(pac[2]<<1)+1]=(w[(pac[2]<<1)+1]&0B11111111111111111111111100000000)|0B00000000000000000000000001000000;
@@ -256,6 +249,7 @@ public class Base {
 //	}
 	
 	public static VSPacmanAction actioToField(int indexBig,int[] world,int pacID) {
+		//System.out.println("actioToField gestartet mit pacID="+pacID+" indexBig="+indexBig+" "+Base.IntToVector2(indexBig/2));
 		VSPacmanAction action=WAIT;;
 		int ds=(pacID+2)<<3&0B11000;
 		int iInc=pacID<2?0:1;
@@ -264,26 +258,30 @@ public class Base {
 		while(((posData>>ds)&E6)>0) {
 			switch((posData>>(ds+6))&0B11) {
 			case 0B00:
-				indexBig=indexBig+((posNavData>>2)&E6);
+				indexBig-=((posNavData&E5N2)>>1);
 				action=GO_SOUTH;
+				//System.out.println("south "+indexBig/2);
 				break;
 			case 0B01: 
-				indexBig=indexBig-((posNavData>>6)&E6);
+				indexBig+=((posNavData&E5N7)>>6);
 				action=GO_NORTH;
+				//System.out.println("north "+indexBig/2);
 				break;
 			case 0B10: 
 				action=GO_EAST;
 				indexBig-=2;
+				//System.out.println("east "+indexBig/2);
 				break;
 			case 0B11: 
 				action=GO_WEST;
 				indexBig+=2;
+				//System.out.println("west "+indexBig/2);
 				break;
 			default:
-				System.err.println("ERROR Base.actioToField default case");
+				//System.err.println("ERROR Base.actioToField default case");
 				action=WAIT;
 			}
-			System.out.println("actionToField->"+((posData>>ds)&E6));
+			//System.out.println("actionToField->"+((posData>>ds)&E6)+"  "+Base.IntToVector2(indexBig/2));
 			posNavData=world[indexBig];
 			posData=world[indexBig+iInc];
 		}

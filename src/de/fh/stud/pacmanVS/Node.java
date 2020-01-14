@@ -50,7 +50,6 @@ public class Node {
 	
 	public void BackPropagation(){
 		Node currentNode=this;
-		double Score;
 		BackpropagationScore bScore = new BackpropagationScore();
 		
 		switch(action) {
@@ -60,7 +59,6 @@ public class Node {
 		case GO_WEST: 	bScore.importFromVolatile(tree.GoWestScore);	break;
 		case GO_EAST: 	bScore.importFromVolatile(tree.GoEastScore);	break;
 		default: System.err.println("Fehler in BackPropagation Methode: action="+action+" DAS PROBLEM MUSS BEHOBEN WERDEN!");
-			Score=123456789;
 		}
 		while(currentNode!=null){
 			currentNode.simulationCount++;
@@ -75,12 +73,12 @@ public class Node {
 	public double getUCB1(boolean unserZug) {
 		double Score;
 		if(unserZug) {
-			Score= (simulationCount==0)? Double.MAX_VALUE : (totalScore+ownScore)/simulationCount+15*Math.sqrt(Math.log(tree.root.simulationCount)/simulationCount);			
+			Score= (simulationCount==0)? Double.MAX_VALUE : (totalScore+ownScore+heuristicScore*(1+Weltzustand.getScore()*4))/simulationCount+15*Math.sqrt(Math.log(tree.root.simulationCount)/simulationCount);			
 		}else{
-			Score= (simulationCount==0)? Double.MAX_VALUE : (totalScore-ownScore)/simulationCount+15*Math.sqrt(simulationCount/Math.log(tree.root.simulationCount));
+			Score= (simulationCount==0)? Double.MAX_VALUE : (totalScore-ownScore+heuristicScore*(1+Weltzustand.getScore()*4))/simulationCount+15*Math.sqrt(simulationCount/Math.log(tree.root.simulationCount));
 		}
 
-		if(constants.DEBUG_UCB1) System.out.println("UCB1= "+Score+"    NodeCount="+simulationCount+" TreeCount="+tree.root.simulationCount+" totalScore="+totalScore+"() ownScore="+ownScore);
+		if(constants.DEBUG_UCB1) System.out.println("UCB1= "+Score+"    NodeCount="+simulationCount+" TreeCount="+tree.root.simulationCount+" totalScore="+totalScore+"() ownScore="+ownScore+" heuristicScore"+heuristicScore);
 
 		if(Weltzustand.action==WAIT) {
 			int punnish=unserZug?-WAIT_PUNNISH:WAIT_PUNNISH;
