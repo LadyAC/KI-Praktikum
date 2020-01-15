@@ -1,9 +1,6 @@
 package de.fh.stud.pacmanVS;
 
 import java.util.concurrent.Phaser;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
 import de.fh.pacmanVS.enums.VSPacmanAction;
 
 public class MCTS extends Thread {
@@ -50,24 +47,21 @@ public class MCTS extends Thread {
 	public void run(){
 		System.out.println("MCTS Thread gestarted Phase:"+phaser.getPhase());
 		doIteration();
-		if(constants.DEBUG_ROOT) {
-			System.out.print("Wurzel: ");
-			root.Weltzustand.print();			
-		}
-		if(constants.DEBUG_CHILDNODES) {
-			for(int i=0;i<root.Children.length;i++) {
-				System.out.print("Kindknoten "+i+" : ");
-				root.Children[i].Weltzustand.print();
-			}
-		}
+		if(constants.DEBUG_ROOT) {				// DEBUG
+			System.out.print("Wurzel: ");		// DEBUG
+			root.Weltzustand.print();			// DEBUG
+		}										// DEBUG
+		if(constants.DEBUG_CHILDNODES) {				// DEBUG
+			for(int i=0;i<root.Children.length;i++) {	// DEBUG
+				System.out.print("Kindknoten "+i+" : ");// DEBUG
+				root.Children[i].Weltzustand.print();	// DEBUG
+			}											// DEBUG
+		}												// DEBUG
 
 
 		
 		while(true){
 			doIteration();
-			if(constants.DEBUG_TREE) {
-				System.out.println(TreeTraversel());
-			}
 			iterationCounterSinceRootChange++;
 			if(RoundActionUsed!=lastRoundActionNumber){		
 				if(constants.DEBUG_ITERATIONCOUNTER) {
@@ -86,13 +80,11 @@ public class MCTS extends Thread {
 	public MCTS(WorldState rootState) {
 		phaser=new Phaser();
 		root = new Node(rootState,this);
-		
 		playWait = new Playout(0,this);
 		playGoWest=new Playout(1,this);
 		playGoEast=new Playout(2,this);
 		playGoNorth=new Playout(3,this);
 		playGoSouth=new Playout(4,this);
-		
 		playWait.start();
 		playGoWest.start();
 		playGoEast.start();
@@ -101,53 +93,32 @@ public class MCTS extends Thread {
 	}
 	
 	public void doIteration() {
-//System.out.println("start iteration");
-		// Step 1&2: Selection and Expansion
-		Node[] Selected=SelectionAndExpansion();
-//System.out.println("#1 Selection&Expansion done");
-		// Step 3: Rollout/Playout
-		SimulateGames(Selected);
-//System.out.println("#2 Simulation done");
-		// Step 4 BackPropagation
+		Node[] Selected=SelectionAndExpansion();// Step 1&2: Selection and Expansion
+		SimulateGames(Selected);				// Step 3: Rollout/Playou
 		for(int i=0;i<Selected.length;i++) 
-			Selected[i].BackPropagation(); 
-//System.out.println("#3 Backproagation done");
-		// ermittle besten Zug nach aktuellen stand
-		double bestScore=Double.NEGATIVE_INFINITY,tmpScore;
+			Selected[i].BackPropagation(); 		// Step 4 BackPropagation
+		double bestScore=Double.NEGATIVE_INFINITY,tmpScore;// ermittle besten Zug nach aktuellen stand
 		int index=0;
 		for(int i=0;i<root.Children.length;i++){
-			Node n=root.Children[i];
-			tmpScore=n.simulationCount;//=((double)n.totalScore)/n.simulationCount;
+			tmpScore=root.Children[i].simulationCount;
 			if(bestScore<tmpScore) {
 				bestScore=tmpScore;
 				index=i;
 			}
+		}																													//DEBUG
+		if(constants.DEBUG_BEST_ACTION && root.Children.length>0															//DEBUG
+		&& (BestActionSoFar!=root.Children[index].action || iterationCounterSinceRootChange%10000==0)) {					//DEBUG
+			System.out.println("Bisher bester Zug: "+BestActionSoFar+" (iterationen: "+iterationCounterSinceRootChange+")");//DEBUG
+		}																													//DEBUG
+		if(root.Children.length!=0) {// verhindert out of bound exception wenn der pacman den letzten schritt vor spielenede machen will
+			BestActionSoFar=root.Children[index].action;
 		}
-		//System.out.println("MCTS THREAD: bestactionsofar Updated");
-		if(constants.DEBUG_BEST_ACTION){
-			if(BestActionSoFar!=root.Children[index].action || iterationCounterSinceRootChange%5000==0) {
-				System.out.println("Bisher bester Zug: "+BestActionSoFar+" (iterationen: "+iterationCounterSinceRootChange+")");
-			}
-		}
-		BestActionSoFar=root.Children[index].action;
-
-
-		
-		// Tausche die Wurzel des Baums aus falls der Main Thread das angeordnet hat
-//System.out.println("end iteration");
 	}
 	
 	
 	private void SimulateGames(Node[] Selected) {
-		String debugString="";
-		
 		phaser = new Phaser(Selected.length);
-//		phaser.bulkRegister(Selected.length);		// telling the Phaser that how many Simulations/Threads need to finish their work before 
-		//System.out.println("MCTS thread:	Bitte "+Selected.length+" Threads mit eine Simulation zu starten");
 		Playout playTmp;
-		if(phaser.getPhase()!=0) {
-			
-		};
 		for(int i=0;i<Selected.length;i++){
 			switch(Selected[i].Weltzustand.action){
 			case WAIT:		
@@ -168,37 +139,10 @@ public class MCTS extends Thread {
 			default:		
 				playTmp=null;
 			}
-			debugString+="  playout id="+playTmp.id+" phase="+playTmp.phaser.getPhase() ;
 			playTmp.toSimulate=Selected[i].Weltzustand;
-
-//			System.out.println("send to: Playout id="+playTmp.id+" activation-signal phase= "+playTmp.phaser.getPhase());
 			playTmp.phaser.arrive(); // Signal an den entsprechenden thread die arbeit auszuführen
-			
-			//System.out.println("MCTS THREAD:  Bitte Playout Thread_"+playTmp.id+" aufzuwachen");
-			
-			//try {Thread.sleep(50);}catch (Exception e) {} 	//verzögerung damit die Debug ausgaben in der richtigen reihenfolge auf der console landen
-			
 		}
-		
-		//try {Thread.currentThread().sleep(50);} catch (InterruptedException e) {}
-//		System.out.println("MCTS phase (nach wartezeit)"+phaser.getPhase());
-		
-		//phaser.awaitAdvance(0);
-		try {
-			phaser.awaitAdvanceInterruptibly(0, 1, TimeUnit.SECONDS);
-		} catch (InterruptedException | TimeoutException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		if(phaser.getPhase()==0) {
-			System.err.println("MCTS left with timeout unarrived="+phaser.getUnarrivedParties()+" \n"+debugString+"\n");
-			System.err.println(playWait.id+" phase: "+playWait.phaser.getPhase()+" "+playWait.running);
-			System.err.println(playGoNorth.id+" phase: "+playGoNorth.phaser.getPhase()+" "+playGoNorth.running);
-			System.err.println(playGoSouth.id+" phase: "+playGoSouth.phaser.getPhase()+" "+playGoSouth.running);
-			System.err.println(playGoWest.id+" phase: "+playGoWest.phaser.getPhase()+" "+playGoWest.running);
-			System.err.println(playGoEast.id+" phase: "+playGoEast.phaser.getPhase()+" "+playGoEast.running);
-		}
-		//System.out.println("MCTS thread:	Alle Playout Threads haben ihre Simulationen abgeschlossen");
+		phaser.awaitAdvance(0);
 	}
 	
 	
@@ -209,26 +153,30 @@ public class MCTS extends Thread {
 			System.out.print("Beginne SelectionAndExpansion bei Wurzel des Baums: ");
 			root.Weltzustand.print();
 		}
-		constants.DEBUG_UCB1=false;
-		if(java.util.concurrent.ThreadLocalRandom.current().nextInt(300000)%300000==0) {
-			constants.DEBUG_UCB1=true;
+		if(constants.RANDOM_DEBUG_UCB1) {
+			constants.DEBUG_UCB1=false;	
+			if(java.util.concurrent.ThreadLocalRandom.current().nextInt(300000)%300000==0) {//DEBUG
+				constants.DEBUG_UCB1=true;												    //DEBUG
+			}			
 		}
-		
+																				
 		while(true){
 			if(Selected.Children==null){  // Knoten ist ein Blattknoten bei dem noch nie verssucht wurde zu expandierene
 				Selected.expand();		// -> expandiere Blattknoten
 				if(Selected.Children.length==0){ // knoten ist immer noch ein Blattknoten weil expansion keine Knoten erzeugen konnte
-					if(constants.DEBUG_SELECTION) {
-						System.out.print("keine Kindknoten vorhanden: Return Knoten -> ");
-						Selected.Weltzustand.print();
-					}
+					if(constants.DEBUG_SELECTION) {											//DEBUG
+						System.out.print("keine Kindknoten vorhanden: Return Knoten -> ");	//DEBUG
+						Selected.Weltzustand.print();										//DEBUG
+					}																		//DEBUG
 					Node[] result = {Selected};
 					return result;
 				}
-				if(Selected.Children[0]!=null){
-					if(constants.DEBUG_SELECTION) {
-						System.out.println("Es wurden "+Selected.Children.length+" neue Blattknoten erzeugt und zurückgegeben mit runde="+Selected.Children[0].Weltzustand.round+"_"+Selected.Children[0].Weltzustand.amZug);
-					}
+				if(Selected.Children[0]!=null){				
+					if(constants.DEBUG_SELECTION) {															//DEBUG
+						System.out.println("Es wurden "+Selected.Children.length							//DEBUG
+					+" neue Blattknoten erzeugt und zurückgegeben mit runde="								//DEBUG
+					+Selected.Children[0].Weltzustand.round+"_"+Selected.Children[0].Weltzustand.amZug);	//DEBUG
+					}																						//DEBUG
 					Heuristik.HeuristischeEmpfehlungen(Selected.Weltzustand, Selected.Children);
 					return Selected.Children;	
 				}else{							
@@ -241,55 +189,50 @@ public class MCTS extends Thread {
 					Node[] result = {Selected};	// gebe den aktuellen knoten zurück
 					return result;
 				}else{//es sind kindknoten vorhanden ->  berechne die UCB1 werte für die einzelnen Kindknoten und ermittle den knoten mit dem größten score
-					if(constants.DEBUG_UCB1) {
-						if(Selected==root) {
-							System.out.println("Berechne UCB1 score kindknoten der Wurzel");
-						}
-						System.out.println("Berechne UCB1 score der kindknoten");
-					}
-					
+					if(constants.DEBUG_UCB1) {																	//DEBUG
+						if(Selected==root) 																		//DEBUG
+							System.out.println("Berechne UCB1 score kindknoten der Wurzel");					//DEBUG	
+						System.out.println("Berechne UCB1 score der kindknoten "								//DEBUG
+						+(Selected.Weltzustand.PacIDAmZug()<3?"(UCB1 maximieren)":"(UCB1 minimieren)"));		//DEBUG
+					}																							//DEBUG
 					int index=0;
 					double[] UCB1Scores=new double[Selected.Children.length];
-					boolean unserZug=WorldState.zugreihenfolge[Selected.Weltzustand.amZug]<3;
+					boolean unserZug=Selected.Weltzustand.PacIDAmZug()<3;
+					if(constants.DEBUG_UCB1) {									//DEBUG
+						System.out.print("KindKnoten: ");						//DEBUG
+						Selected.Children[0].Weltzustand.print();				//DEBUG
+					}															//DEBUG
 					double BestUCB1score=Selected.Children[0].getUCB1(unserZug);
 					if(unserZug) {
 						for(int i=1;i<Selected.Children.length;i++){
-							if(constants.DEBUG_UCB1) {
-								System.out.print("KindKnoten: ");
-								Selected.Children[i].Weltzustand.print();
-							}						
+							if(constants.DEBUG_UCB1) {						//DEBUG
+								System.out.print("KindKnoten: ");			//DEBUG
+								Selected.Children[i].Weltzustand.print();	//DEBUG
+							}												//DEBUG
 							if((UCB1Scores[i]=Selected.Children[i].getUCB1(unserZug))>BestUCB1score) {
 								BestUCB1score=UCB1Scores[index=i];
 							}
 						}
 					}else {
 						for(int i=1;i<Selected.Children.length;i++){
-							if(constants.DEBUG_UCB1) {
-								System.out.print("KindKnoten: ");
-								Selected.Children[i].Weltzustand.print();
-							}						
+							if(constants.DEBUG_UCB1) {						//DEBUG
+								System.out.print("KindKnoten: ");			//DEBUG
+								Selected.Children[i].Weltzustand.print();	//DEBUG
+							}												//DEBUG
 							if((UCB1Scores[i]=Selected.Children[i].getUCB1(unserZug))<BestUCB1score) {
 								BestUCB1score=UCB1Scores[index=i];
 							}
 						}
 					}					
-
-					
-
-//					if(MaxUCB1score==Double.MIN_VALUE) {
-//						System.err.println("UCB1 SCore ist Double.MIN_VALUE");
-//						System.err.println("anzahl verglichener knoten: "+Selected.Children.length);
-//						for(int i=0;i<Selected.Children.length;i++){
-//							System.err.println("Score ="+UCB1Scores[index=i]+" -> "+(UCB1Scores[index=i]>Double.MIN_VALUE));
-//						}
-//					}
-					if(constants.DEBUG_UCB1) {
-						System.out.println("waehle kindknoten nummer "+index+" mit UCB1 Score="+BestUCB1score);
-					}
+					if(constants.DEBUG_UCB1) {																	//DEBUG
+						System.out.println("waehle kindknoten nummer "+index+" mit UCB1 Score="+BestUCB1score);	//DEBUG
+					}																							//DEBUG
 					Selected=Selected.Children[index];
-					if(constants.DEBUG_SELECTION) {
-						System.out.println("Selection: KindKnoten nummer "+index+" mit UCB1 Score="+BestUCB1score+" (aktion ="+Selected.action+")"+"runde="+Selected.Weltzustand.round+"_"+Selected.Weltzustand.amZug);
-					}
+					if(constants.DEBUG_SELECTION) {																//DEBUG
+						System.out.println("Selection: KindKnoten nummer "+index+" mit UCB1 Score="				//DEBUG
+						+BestUCB1score+" (aktion ="+Selected.action+")"+"runde="+Selected.Weltzustand.round+"_" //DEBUG
+						+Selected.Weltzustand.amZug);															//DEBUG
+					}																							//DEBUG
 				}
 			}
 		}
@@ -303,41 +246,19 @@ public class MCTS extends Thread {
 				break;
 			}
 		if(!found)
-			System.out.println("!!!!!!!!!!!!!!Mit der neuen Wurzel des Baums stimmt was nicht!!!!");
+			System.out.println("MCTS THREAD: !!!!!!!!!!!!!!Mit der neuen Wurzel des Baums stimmt was nicht!!!!");
 
-		
-		//System.out.print("neue Wurzel: ");
-		//newRoot.Weltzustand.print();
-		
 		root=newRoot;
 		root.parent=null;
 		doIteration();	// stellt sicher das die KindKnoten erzeugt werden bevor der Main Thread erfährt das die wurzel ausgetauscht wurde
 		RoundActionUsed++;
 	}
-	
 
-	public String TreeTraversel(){
-		StringBuilder treeStringbuilder = new StringBuilder();
-		treeStringbuilder.append("TREE START:\n");
-		TreeTraversel(root,treeStringbuilder);
-		treeStringbuilder.append("TREE END\n");
-		return treeStringbuilder.toString();
-	}
-	
-	public int TreeTraverselCount(){
+	public int TreeTraverselCount(){	// nur für Debug ausgaben
 		return TreeTraverselCount(root);
 	}
 	
-	private void TreeTraversel(Node n,StringBuilder treeStringbuilder){
-		treeStringbuilder.append(n.NodeToString());
-		treeStringbuilder.append("\n");
-		if(n.Children!=null) {
-			for(int i=0;i<n.Children.length;i++) {
-				TreeTraversel(n.Children[i],treeStringbuilder);
-			}		
-		}
-	}
-	private int TreeTraverselCount(Node n){
+	private int TreeTraverselCount(Node n){ // nur für Debug ausgaben
 		int counter=1;
 		if(n.Children!=null) {
 			for(int i=0;i<n.Children.length;i++) {

@@ -14,7 +14,10 @@ public class WorldState {
 	public static int[] OwnBorderFields; // initialisiert durch Base.createWorldBase
 	public static int[] zugreihenfolge=new int[6];
 	public static int[] spawnPosition=new int[6];
-	public static int DotsOnEachSide=-42; //TODO: wert am anfang des Spiels setzen		// anzahl der Dots die ein Team beim spielstart besitzt
+	public static int DotsOnEachSide=-42; // anzahl der Dots die ein Team beim spielstart besitzt
+	
+
+	
 	// (zur prüfung ob ein spiel gewonnen wurde beim Rollout)
 	public static int RolloutDepth=25*6;	// maximale tiefe eine Simulation
 //	public static int NumberOfPacmans; 	// anzahl der pacmans im spiel ( =2 bei 1vs1 =6 bei 3vs3 )
@@ -50,7 +53,8 @@ public class WorldState {
 	
 	// Konstruktor der aus einen VSPacmanPercept Objekt das uns der Server liefert ein WorldState Objekt erstellt
 	// funktioniert nur für das erste percept da wir nur im ersten Zug wissen welcher pacman welche Dots trägt
-	public WorldState(VSPacmanPercept percept){	
+	
+	public WorldState(VSPacmanPercept percept){	// Dieser Konstruktor wird einmalig aufgeruten um eine wurzel für den baum basieren auf dem percept zu generieren
 		carriedDots = new int[6][0];
 		round=percept.getElapsedTurns();
 		world=Base.WorldBaseBig;
@@ -97,7 +101,7 @@ public class WorldState {
 		this.enemyTeamDotsSecured=enemyTeamDotsSecured;
 	}
 	
-	// Konstruktor für Tree expansion
+	// Konstruktor für Baum expansion
 	public WorldState(int[] world,int[][] carriedDots,int[] PacPos,int amZug,int round,int ourTeamDotsSecured,int enemyTeamDotsSecured,VSPacmanAction action){
 		this(world,carriedDots,PacPos,amZug,round,ourTeamDotsSecured,enemyTeamDotsSecured);
 		this.action=action;
@@ -137,17 +141,9 @@ public class WorldState {
 		return actions;
 	}
 	
-	
-	
+
 	public ArrayList<WorldState> expand_AllDirectionsAndWait() {
-		if(amZug==5 && round == 400 || DotsOnEachSide==enemyTeamDotsSecured || DotsOnEachSide==ourTeamDotsSecured) {			
-//			System.err.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! "
-//					+ "amZug="+amZug
-//					+" round="+round
-//					+" DotsOnEachSide="+DotsOnEachSide
-//					+" enemyTeamDotsSecured="+enemyTeamDotsSecured
-//					+" ourTeamDotsSecured="+ourTeamDotsSecured);
-//			
+		if(amZug==5 && round == 400 || DotsOnEachSide==enemyTeamDotsSecured || DotsOnEachSide==ourTeamDotsSecured) {
 			return new ArrayList<WorldState>(0);
 		}
 		
@@ -360,9 +356,8 @@ public class WorldState {
 		WorldState tmp;
 		ArrayList<WorldState> kandidaten;
 		if(round>400 || round==400 && amZug==5) {
-			System.err.println("Simulation gestarted für folgende runde: "+this.round+"_"+this.amZug);
-			print();
-			System.exit(0);
+			SimulationScore.gameScore=this.getScore();
+			return SimulationScore;
 		}
 		while(true){
 			SimTiefe++;
@@ -395,7 +390,7 @@ public class WorldState {
 					return SimulationScore;
 				}
 			}
-			int index=java.util.concurrent.ThreadLocalRandom.current().nextInt(kandidaten.size());
+			int index=java.util.concurrent.ThreadLocalRandom.current().nextInt(kandidaten.size()); // ist ein schnelleres Random als Math.Random
 			WorldState neuerKnoten=kandidaten.get(index);
 			for(int i=0;i<6;i++) {
 				int carried=AktuellerKnoten.carriedDots[i].length;
@@ -422,4 +417,24 @@ public class WorldState {
 			AktuellerKnoten=neuerKnoten;
 		}
 	}
+	
+	public static ArrayList<WorldState> SimulateRecordedActions(WorldState RecreatedRoot,ArrayList<VSPacmanAction> RecordedActions,VSPacmanPercept lastPercept) {
+		System.out.print("Reconstructing: ");
+		RecreatedRoot.print();
+		ArrayList<WorldState> ChildNodes;
+		for(int i=0;i<RecordedActions.size();i++) {
+			ChildNodes=RecreatedRoot.expand_AllDirectionsAndWait();
+			for(int i2=0;i2<ChildNodes.size();i2++) {
+				if(RecordedActions.get(i)==ChildNodes.get(i2).action) {
+					RecreatedRoot=ChildNodes.get(i2);
+					System.out.print("Reconstructing: ->"+ChildNodes.get(i2).action+" ->");
+					RecreatedRoot.print();
+					break;
+				}
+			}
+		}
+		ChildNodes=RecreatedRoot.expand_AllDirectionsAndWait();
+		return ChildNodes;
+	}
+	
 }

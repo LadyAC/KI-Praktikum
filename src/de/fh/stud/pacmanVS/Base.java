@@ -29,9 +29,7 @@ public class Base {
 		return coords[i];
 	}
 	
-	
  	public static void createWorldBase(VSPacmanTileType[][] world, VSPacmanStartInfo startInfo){
- 		
  	 	Team team = startInfo.getTeam();
  		xyToIndex=new int[world.length][world[0].length];
 		if(worldBaseCreated) {
@@ -80,7 +78,6 @@ public class Base {
 				WorldBaseBig[i*2]=WorldBase[i];
 				WorldBaseBig[i*2+1]=0;
 			}
-			//TODO Sven
 			List<Vector2> ownSpwans = startInfo.getTeammateSpawns();
 			List<Vector2> otherspawns = startInfo.getOpponentSpawn();
 			int index = 0;
@@ -88,8 +85,6 @@ public class Base {
 				WorldState.spawnPosition[index++]=Base.Vector2ToInt(ownSpwans.get(i));
 			for(int i = 0; i<otherspawns.size();i++)
 				WorldState.spawnPosition[index++]=Base.Vector2ToInt(otherspawns.get(i));
-			//TODO Sven Ende
-			
 			worldBaseCreated=true;
 		}
 		initBorderFields(world.length,startInfo.getTeam());
@@ -243,13 +238,7 @@ public class Base {
 		return w;
 	}
 	
-//	public static int ReadDistanceInfo(int[] world,int iInc,int ds){
-//		int distance=world
-//		return distance;
-//	}
-	
 	public static VSPacmanAction actioToField(int indexBig,int[] world,int pacID) {
-		//System.out.println("actioToField gestartet mit pacID="+pacID+" indexBig="+indexBig+" "+Base.IntToVector2(indexBig/2));
 		VSPacmanAction action=WAIT;;
 		int ds=(pacID+2)<<3&0B11000;
 		int iInc=pacID<2?0:1;
@@ -287,8 +276,6 @@ public class Base {
 		}
 		return action;
 	}
-	
-	
 	
 	public static void DrawDistanceInfo(VSPacmanTileType[][] view,int[] worldAndData) { 
 		int Xsize=view.length*6+1;
@@ -351,6 +338,7 @@ public class Base {
 		}
 		System.out.println(sb.toString());
 	}	
+	
 	private static String drawNumber(int number,int side) {
 		String numberString="-";
 		if(number>=0) {
@@ -362,16 +350,9 @@ public class Base {
 			return (numberString+" ");
 		return numberString;
 	}
+
 	private static String drawNumbers(int left,int right) {
 		return "*"+drawNumber(left,0)+" "+drawNumber(right,1);
 	}
-	
-	
-	
-	
-	
-	
-	
-	
 	
 }

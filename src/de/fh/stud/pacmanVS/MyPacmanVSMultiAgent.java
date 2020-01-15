@@ -2,7 +2,7 @@ package de.fh.stud.pacmanVS;
 
 import de.fh.agent.PacmanVSMultiAgent;
 import de.fh.agent.VSPacmanAgent;
-
+ 
 public class MyPacmanVSMultiAgent extends PacmanVSMultiAgent {
 
 	//Diese Klasse ermoeglicht es euch, 3 Agenten gleichzeitig zu starten.

@@ -1,16 +1,16 @@
 package de.fh.stud.pacmanVS;
 
 public class constants {
-	public static  boolean DEBUG_UCB1					=false;
+	public static final boolean RANDOM_DEBUG_UCB1		=false;
+	public static boolean DEBUG_UCB1				 	=false;
 	public static final boolean DEBUG_CHILDNODES		=false;
 	public static final boolean DEBUG_NODE_REPAWN_DATA	=false;
 	public static final boolean DEBUG_PERCEPTS			=false;
-	public static final boolean DEBUG_ROOT				=true;
+	public static final boolean DEBUG_ROOT				=false;
 	public static final boolean DEBUG_THREADSYNC		=false;
-	public static final boolean DEBUG_ACTION			=true;
+	public static final boolean DEBUG_ACTION			=false;
 	public static final boolean DEBUG_SELECTION			=false;
 	public static final boolean DEBUG_BEST_ACTION		=false;
-	public static final boolean DEBUG_TREE				=false;
 	public static final boolean DEBUG_ITERATIONCOUNTER	=true;
 	
 	public static final int E1= 0B1;
